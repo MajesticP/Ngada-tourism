@@ -36,9 +36,10 @@ type Props = {
     lat?: number | null
     lng?: number | null
   }
+  children?: React.ReactNode
 }
 
-export default function WisataForm({ kecamatan, defaultValues }: Props) {
+export default function WisataForm({ kecamatan, defaultValues, children }: Props) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -310,6 +311,9 @@ export default function WisataForm({ kecamatan, defaultValues }: Props) {
           → "What's here?" untuk mendapatkan koordinat
         </p>
       </div>
+
+      {/* ── GALLERY (injected from parent) ──────────────────── */}
+      {children}
 
       {/* ── ACTIONS ──────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
