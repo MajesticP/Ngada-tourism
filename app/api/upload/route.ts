@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac } from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -22,17 +23,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Ukuran file maksimal ${MAX_SIZE_MB}MB` }, { status: 400 })
     }
 
-    // Convert file to base64
     const bytes = await file.arrayBuffer()
     const base64 = Buffer.from(bytes).toString('base64')
     const dataUri = `data:${file.type};base64,${base64}`
-
-    // Upload to Cloudinary
-    const formDataCloud = new FormData()
-    formDataCloud.append('file', dataUri)
-    formDataCloud.append('upload_preset', 'unsigned_ngada')
-    formDataCloud.append('cloud_name', process.env.CLOUDINARY_CLOUD_NAME!)
-    formDataCloud.append('api_key', process.env.CLOUDINARY_API_KEY!)
 
     const timestamp = Math.floor(Date.now() / 1000).toString()
     const baseName = file.name
@@ -43,22 +36,24 @@ export async function POST(req: NextRequest) {
       .slice(0, 60)
     const publicId = `ngada/${Date.now()}-${baseName}`
 
-    // Use signed upload
-    const crypto = await import('crypto')
-    const signature = crypto
-      .createHash('sha256')
-      .update(`public_id=${publicId}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`)
-      .digest('hex')
+    const apiSecret = process.env.CLOUDINARY_API_SECRET!
+    const apiKey = process.env.CLOUDINARY_API_KEY!
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME!
+
+    // Correct Cloudinary signature: SHA-1 of sorted params + secret
+    const signatureString = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`
+    const { createHash } = await import('crypto')
+    const signature = createHash('sha1').update(signatureString).digest('hex')
 
     const uploadForm = new FormData()
     uploadForm.append('file', dataUri)
-    uploadForm.append('api_key', process.env.CLOUDINARY_API_KEY!)
+    uploadForm.append('api_key', apiKey)
     uploadForm.append('timestamp', timestamp)
     uploadForm.append('public_id', publicId)
     uploadForm.append('signature', signature)
 
     const cloudRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       { method: 'POST', body: uploadForm }
     )
 
@@ -68,7 +63,6 @@ export async function POST(req: NextRequest) {
       throw new Error(cloudData.error?.message ?? 'Gagal upload ke Cloudinary')
     }
 
-    // Return the secure URL as filename so it can be stored in DB
     return NextResponse.json({ filename: cloudData.secure_url }, { status: 201 })
   } catch (err: any) {
     console.error('[POST /api/upload]', err)
