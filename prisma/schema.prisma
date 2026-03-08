@@ -61,6 +61,7 @@ model TempatWisata {
   kecamatan  Kecamatan? @relation(fields: [id_kecamatan], references: [id_kecamatan])
   lokasi     Lokasi?    @relation(fields: [id_lokasi], references: [id_lokasi])
   galeri     Galeri?    @relation(fields: [id_galeri], references: [id_galeri])
+  fotos      Foto[]
 
   @@map("tempat_wisata")
 }
@@ -75,4 +76,14 @@ model Pesan {
   created_at DateTime @default(now())
 
   @@map("pesan")
+}
+
+model Foto {
+  id_foto          Int          @id @default(autoincrement())
+  id_tempat_wisata Int
+  url              String       @db.Text
+  urutan           Int          @default(0)
+  tempat_wisata    TempatWisata @relation(fields: [id_tempat_wisata], references: [id_tempat_wisata], onDelete: Cascade)
+
+  @@map("foto")
 }

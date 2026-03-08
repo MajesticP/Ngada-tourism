@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import WisataForm from '@/components/admin/WisataForm'
+import PhotoUploader from '@/components/admin/PhotoUploader'
 
 export default async function EditWisataPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params
@@ -10,7 +11,7 @@ export default async function EditWisataPage({ params }: { params: Promise<{ id:
   const [wisata, kecamatan] = await Promise.all([
     db.tempatWisata.findUnique({
       where: { id_tempat_wisata: id },
-      include: { lokasi: true, galeri: true },
+      include: { lokasi: true, galeri: true, fotos: { orderBy: { urutan: 'asc' } } },
     }),
     db.kecamatan.findMany({ orderBy: { nama_kecamatan: 'asc' } }),
   ])
@@ -38,6 +39,18 @@ export default async function EditWisataPage({ params }: { params: Promise<{ id:
           lng:                 wisata.lokasi?.lng ?? null,
         }}
       />
+
+      {/* Gallery section */}
+      <div className="bg-white rounded-2xl shadow-sm border border-ngada-100 p-6 space-y-4 max-w-2xl">
+        <div className="border-b border-ngada-100 pb-3">
+          <h2 className="font-display text-base text-forest-800">Galeri Foto</h2>
+          <p className="text-xs text-forest-400 mt-1">Upload hingga 5 foto untuk ditampilkan sebagai carousel</p>
+        </div>
+        <PhotoUploader
+          wisataId={wisata.id_tempat_wisata}
+          initialPhotos={wisata.fotos}
+        />
+      </div>
     </div>
   )
 }
