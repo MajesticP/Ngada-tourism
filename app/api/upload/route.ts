@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
 
-// Required — fs is not available in the Edge runtime
 export const runtime = 'nodejs'
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads')
 const MAX_SIZE_MB = 5
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
@@ -27,26 +22,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Ukuran file maksimal ${MAX_SIZE_MB}MB` }, { status: 400 })
     }
 
-    // Ensure uploads directory exists
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true })
+    // Convert file to base64
+    const bytes = await file.arrayBuffer()
+    const base64 = Buffer.from(bytes).toString('base64')
+    const dataUri = `data:${file.type};base64,${base64}`
+
+    // Upload to Cloudinary
+    const formDataCloud = new FormData()
+    formDataCloud.append('file', dataUri)
+    formDataCloud.append('upload_preset', 'unsigned_ngada')
+    formDataCloud.append('cloud_name', process.env.CLOUDINARY_CLOUD_NAME!)
+    formDataCloud.append('api_key', process.env.CLOUDINARY_API_KEY!)
+
+    const timestamp = Math.floor(Date.now() / 1000).toString()
+    const baseName = file.name
+      .replace(/\.[^.]+$/, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60)
+    const publicId = `ngada/${Date.now()}-${baseName}`
+
+    // Use signed upload
+    const crypto = await import('crypto')
+    const signature = crypto
+      .createHash('sha256')
+      .update(`public_id=${publicId}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`)
+      .digest('hex')
+
+    const uploadForm = new FormData()
+    uploadForm.append('file', dataUri)
+    uploadForm.append('api_key', process.env.CLOUDINARY_API_KEY!)
+    uploadForm.append('timestamp', timestamp)
+    uploadForm.append('public_id', publicId)
+    uploadForm.append('signature', signature)
+
+    const cloudRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: uploadForm }
+    )
+
+    const cloudData = await cloudRes.json()
+
+    if (!cloudRes.ok) {
+      throw new Error(cloudData.error?.message ?? 'Gagal upload ke Cloudinary')
     }
 
-    // Build a clean unique filename: timestamp-originalname.ext
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const baseName = file.name
-      .replace(/\.[^.]+$/, '')           // strip extension
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')       // slugify
-      .replace(/^-+|-+$/g, '')           // trim dashes
-      .slice(0, 60)                       // cap length
-    const filename = `${Date.now()}-${baseName}.${ext}`
-    const filePath = path.join(UPLOAD_DIR, filename)
-
-    const bytes = await file.arrayBuffer()
-    await writeFile(filePath, Buffer.from(bytes))
-
-    return NextResponse.json({ filename }, { status: 201 })
+    // Return the secure URL as filename so it can be stored in DB
+    return NextResponse.json({ filename: cloudData.secure_url }, { status: 201 })
   } catch (err: any) {
     console.error('[POST /api/upload]', err)
     return NextResponse.json({ error: err.message ?? 'Gagal mengunggah file' }, { status: 500 })
