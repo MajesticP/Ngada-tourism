@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id_admin  Int    @id @default(autoincrement())
+  username  String @unique
+  password  String
+
+  @@map("admin")
+}
+
+model Kecamatan {
+  id_kecamatan   Int            @id @default(autoincrement())
+  nama_kecamatan String
+  tempat_wisata  TempatWisata[]
+
+  @@map("kecamatan")
+}
+
+model Lokasi {
+  id_lokasi     Int            @id @default(autoincrement())
+  nama_lokasi   String
+  lat           Float?
+  lng           Float?
+  tempat_wisata TempatWisata[]
+
+  @@map("lokasi")
+}
+
+model Galeri {
+  id_galeri     Int            @id @default(autoincrement())
+  nama_galeri   String
+  gambar        String?
+  keterangan    String?        @db.Text
+  tempat_wisata TempatWisata[]
+
+  @@map("galeri")
+}
+
+model TempatWisata {
+  id_tempat_wisata   Int       @id @default(autoincrement())
+  nama_tempat_wisata String
+  alamat             String    @db.Text
+  informasi1         String    @db.Text
+  id_kecamatan       Int?
+  id_lokasi          Int?
+  id_galeri          Int?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  kecamatan  Kecamatan? @relation(fields: [id_kecamatan], references: [id_kecamatan])
+  lokasi     Lokasi?    @relation(fields: [id_lokasi], references: [id_lokasi])
+  galeri     Galeri?    @relation(fields: [id_galeri], references: [id_galeri])
+
+  @@map("tempat_wisata")
+}
+
+model Pesan {
+  id_pesan   Int      @id @default(autoincrement())
+  nama       String
+  email      String
+  subjek     String?
+  pesan      String   @db.Text
+  sudah_baca Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@map("pesan")
+}

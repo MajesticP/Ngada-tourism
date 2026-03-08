@@ -1,0 +1,104 @@
+/* Fonts loaded via next/font/google in layout.tsx — no @import needed here */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --forest-dark: #1b3924;
+  --forest-mid: #285635;
+  --ngada-gold: #dc911f;
+  --terra-warm: #dc6038;
+  --cream: #fdf8f0;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  body {
+    @apply bg-ngada-50 text-forest-900;
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-ngada-500 hover:bg-ngada-600 text-white px-6 py-3 rounded-full font-body font-medium transition-all duration-300 hover:shadow-lg hover:shadow-ngada-500/30 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-outline {
+    @apply border-2 border-forest-600 text-forest-700 hover:bg-forest-600 hover:text-white px-6 py-3 rounded-full font-body font-medium transition-all duration-300;
+  }
+
+  /* only one definition of .card-wisata is needed */
+  .card-wisata {
+    @apply bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-2;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  /* Admin specific */
+  .admin-sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-forest-200 hover:bg-white/10 hover:text-white;
+  }
+
+  .admin-sidebar-link.active {
+    @apply bg-ngada-500 text-white shadow-lg shadow-ngada-500/30;
+  }
+
+  .stat-card {
+    @apply bg-white rounded-2xl p-6 shadow-sm border border-ngada-100 hover:shadow-md transition-shadow;
+  }
+
+  .input-field {
+    @apply w-full border border-ngada-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ngada-400 focus:border-transparent transition-all bg-white;
+  }
+}
+
+/* …rest of file unchanged… */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+  .animate-delay-500 { animation-delay: 500ms; }
+  .animate-delay-600 { animation-delay: 600ms; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #fdf8f0; }
+::-webkit-scrollbar-thumb { background: #92c49a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #418851; }
+
+/* Grain texture overlay */
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Hero parallax */
+.parallax-hero {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
