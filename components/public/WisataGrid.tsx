@@ -36,7 +36,7 @@ export default function WisataGrid({ wisata }: { wisata: Wisata[] }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
       {wisata.map((w, i) => {
         const imgSrc = w.galeri?.gambar
-          ? `/uploads/${w.galeri.gambar}`
+          ? w.galeri.gambar.startsWith("http") ? w.galeri.gambar : `/uploads/${w.galeri.gambar}`
           : IMAGE_FALLBACKS[i % IMAGE_FALLBACKS.length]
 
         return (

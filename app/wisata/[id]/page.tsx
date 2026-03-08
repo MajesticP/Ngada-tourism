@@ -37,7 +37,7 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
 
   const related = await getRelated(wisata.id_kecamatan, wisata.id_tempat_wisata)
   const imgSrc = wisata.galeri?.gambar
-    ? `/uploads/${wisata.galeri.gambar}`
+    ? wisata.galeri.gambar.startsWith("http") ? wisata.galeri.gambar : `/uploads/${wisata.galeri.gambar}`
     : IMAGE_FALLBACKS[wisata.id_tempat_wisata % IMAGE_FALLBACKS.length]
 
   const hasMap = wisata.lokasi?.lat && wisata.lokasi?.lng
@@ -145,7 +145,7 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
                   <Link key={r.id_tempat_wisata} href={`/wisata/${r.id_tempat_wisata}`} className="card-wisata block">
                     <div className="relative h-40 overflow-hidden">
                       <Image
-                        src={r.galeri?.gambar ? `/uploads/${r.galeri.gambar}` : IMAGE_FALLBACKS[i % IMAGE_FALLBACKS.length]}
+                        src={r.galeri?.gambar ? r.galeri.gambar.startsWith("http") ? r.galeri.gambar : `/uploads/${r.galeri.gambar}` : IMAGE_FALLBACKS[i % IMAGE_FALLBACKS.length]}
                         alt={r.nama_tempat_wisata}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-700"

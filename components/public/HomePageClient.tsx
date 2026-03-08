@@ -241,7 +241,7 @@ export default function HomePageClient({ wisataData }: { wisataData: WisataItem[
               >
                 {visibleWisata.map((w, i) => {
                   const imgSrc = w.galeri?.gambar
-                    ? `/uploads/${w.galeri.gambar}`
+                    ? w.galeri.gambar.startsWith("http") ? w.galeri.gambar : `/uploads/${w.galeri.gambar}`
                     : IMAGE_FALLBACKS[i % IMAGE_FALLBACKS.length]
                   const icon = CATEGORY_ICONS[i % CATEGORY_ICONS.length]
                   const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length]

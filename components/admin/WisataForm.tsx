@@ -45,7 +45,7 @@ export default function WisataForm({ kecamatan, defaultValues }: Props) {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(
-    defaultValues?.galeri_gambar ? `/uploads/${defaultValues.galeri_gambar}` : null
+    defaultValues?.galeri_gambar ? defaultValues.galeri_gambar.startsWith("http") ? defaultValues.galeri_gambar : `/uploads/${defaultValues.galeri_gambar}` : null
   )
 
   const [form, setForm] = useState<FormData>({
