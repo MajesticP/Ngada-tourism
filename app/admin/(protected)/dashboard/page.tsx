@@ -34,9 +34,9 @@ export default async function DashboardPage() {
 
   const stats = [
     { label: 'Tempat Wisata', value: totalWisata, icon: Globe, color: 'text-forest-600', bg: 'bg-forest-50', border: 'border-forest-200', href: '/admin/wisata' },
-    { label: 'Galeri Foto', value: totalGaleri, icon: Image, color: 'text-ngada-600', bg: 'bg-ngada-50', border: 'border-ngada-200', href: '/admin/galeri' },
+    { label: 'Galeri Foto', value: totalGaleri, icon: Image, color: 'text-ngada-600', bg: 'bg-ngada-50', border: 'border-ngada-200', href: '/admin/wisata' },
     { label: 'Kecamatan', value: totalKecamatan, icon: Map, color: 'text-terra-600', bg: 'bg-terra-50', border: 'border-terra-200', href: '/admin/kecamatan' },
-    { label: 'Titik Lokasi', value: totalLokasi, icon: MapPin, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200', href: '/admin/lokasi' },
+    { label: 'Titik Lokasi', value: totalLokasi, icon: MapPin, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200', href: '/admin/wisata' },
     { label: 'Pesan Baru', value: unreadPesan, icon: Inbox, color: 'text-terra-600', bg: 'bg-terra-50', border: unreadPesan > 0 ? 'border-terra-400' : 'border-terra-200', href: '/admin/pesan' },
   ]
 
@@ -46,9 +46,9 @@ export default async function DashboardPage() {
 
   const quickActions = [
     { href: '/admin/wisata/new', label: 'Tambah Wisata', icon: Plus, color: 'bg-forest-600 hover:bg-forest-700' },
-    { href: '/admin/galeri/new', label: 'Upload Foto', icon: Plus, color: 'bg-ngada-500 hover:bg-ngada-600' },
-    { href: '/admin/kecamatan/new', label: 'Tambah Kecamatan', icon: Plus, color: 'bg-terra-500 hover:bg-terra-600' },
-    { href: '/admin/lokasi/new', label: 'Tambah Lokasi', icon: Plus, color: 'bg-purple-600 hover:bg-purple-700' },
+    { href: '/admin/kecamatan', label: 'Kelola Kecamatan', icon: Plus, color: 'bg-ngada-500 hover:bg-ngada-600' },
+    { href: '/admin/pesan', label: 'Lihat Pesan', icon: Plus, color: 'bg-terra-500 hover:bg-terra-600' },
+    { href: '/admin/admins', label: 'Data Admin', icon: Plus, color: 'bg-purple-600 hover:bg-purple-700' },
   ]
 
   return (

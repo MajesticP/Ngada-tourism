@@ -16,7 +16,7 @@ export default function AdminTopbar({ user }: TopbarProps) {
   }
 
   return (
-    <header className="h-16 bg-white border-b border-ngada-100 flex items-center justify-between px-6 flex-shrink-0 shadow-sm">
+    <header className="h-16 bg-white border-b border-ngada-100 flex items-center justify-between px-6 lg:px-6 pl-16 lg:pl-6 flex-shrink-0 shadow-sm">
       <div>
         <h2 className="text-sm font-medium text-forest-900">
           Selamat datang,{' '}

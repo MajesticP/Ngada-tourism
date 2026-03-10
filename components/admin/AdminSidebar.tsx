@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, MapPin, Map, Users, Globe, ChevronRight, Inbox } from 'lucide-react'
+import { LayoutDashboard, MapPin, Map, Users, Globe, ChevronRight, Inbox, Menu, X } from 'lucide-react'
 
 const navItems = [
   { href: '/admin/dashboard',  label: 'Dashboard',     icon: LayoutDashboard },
@@ -13,26 +13,11 @@ const navItems = [
   { href: '/admin/admins',     label: 'Data Admin',    icon: Users },
 ]
 
-export default function AdminSidebar() {
-  const pathname = usePathname()
-  const [unread, setUnread] = useState(0)
-
-  useEffect(() => {
-    const fetchUnread = () => {
-      fetch('/api/pesan?filter=unread')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => { if (data) setUnread(data.unreadCount) })
-        .catch(() => {})
-    }
-    fetchUnread()
-    const interval = setInterval(fetchUnread, 60_000)
-    return () => clearInterval(interval)
-  }, [])
-
+function SidebarContent({ pathname, unread, onClose }: { pathname: string; unread: number; onClose?: () => void }) {
   return (
-    <aside className="w-64 bg-forest-900 flex-shrink-0 flex flex-col hidden lg:flex">
+    <div className="w-64 bg-forest-900 flex flex-col h-full">
       {/* Logo */}
-      <div className="p-6 border-b border-white/10">
+      <div className="p-6 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-ngada-500 flex items-center justify-center">
             <MapPin size={16} className="text-white" />
@@ -42,6 +27,11 @@ export default function AdminSidebar() {
             <div className="text-ngada-300 text-xs mt-0.5">Admin Panel</div>
           </div>
         </div>
+        {onClose && (
+          <button onClick={onClose} className="text-white/50 hover:text-white lg:hidden">
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -54,6 +44,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={`admin-sidebar-link ${active ? 'active' : ''}`}
             >
               <Icon size={18} />
@@ -71,11 +62,71 @@ export default function AdminSidebar() {
 
       {/* Footer */}
       <div className="p-4 border-t border-white/10">
-        <Link href="/" target="_blank" className="admin-sidebar-link text-xs">
+        <Link href="/" target="_blank" className="admin-sidebar-link text-xs" onClick={onClose}>
           <Globe size={15} />
           Lihat Situs Publik
         </Link>
       </div>
-    </aside>
+    </div>
+  )
+}
+
+export default function AdminSidebar() {
+  const pathname = usePathname()
+  const [unread, setUnread] = useState(0)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    const fetchUnread = () => {
+      fetch('/api/pesan?filter=unread')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data) setUnread(data.unreadCount) })
+        .catch(() => {})
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 60_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Close on route change
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex flex-shrink-0">
+        <SidebarContent pathname={pathname} unread={unread} />
+      </aside>
+
+      {/* Mobile hamburger button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 rounded-xl bg-forest-900 flex items-center justify-center text-white shadow-lg"
+        aria-label="Buka menu"
+      >
+        <Menu size={20} />
+      </button>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setMobileOpen(false)}
+          />
+          {/* Drawer panel */}
+          <div className="relative z-10 flex-shrink-0">
+            <SidebarContent
+              pathname={pathname}
+              unread={unread}
+              onClose={() => setMobileOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+    </>
   )
 }
