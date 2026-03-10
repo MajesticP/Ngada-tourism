@@ -51,13 +51,6 @@ const IMAGE_FALLBACKS = [
   'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&q=80',
 ]
 
-  const stats = [
-    { label: 'Tempat Wisata', value: `${totalWisata}+`, icon: <Camera size={22} /> },
-    { label: 'Kecamatan', value: `${kecamatanList.length}`, icon: <MapPin size={22} /> },
-    { label: 'Kampung Adat', value: `${totalKampung}`, icon: <Users size={22} /> },
-    { label: 'Pulau Eksotis', value: `${totalPulau}`, icon: <Waves size={22} /> },
-  ]
-
 export default function HomePageClient({ wisataData, kecamatanList, totalWisata, totalKampung, totalPulau }: {
   wisataData: WisataItem[]
   kecamatanList: { id_kecamatan: number; nama_kecamatan: string }[]
@@ -76,6 +69,13 @@ export default function HomePageClient({ wisataData, kecamatanList, totalWisata,
 
   const [isMobile, setIsMobile] = useState(false)
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
+
+  const stats = [
+    { label: 'Tempat Wisata', value: `${totalWisata}+`, icon: <Camera size={22} /> },
+    { label: 'Kecamatan', value: `${kecamatanList.length}`, icon: <MapPin size={22} /> },
+    { label: 'Kampung Adat', value: `${totalKampung}`, icon: <Users size={22} /> },
+    { label: 'Pulau Eksotis', value: `${totalPulau}`, icon: <Waves size={22} /> },
+  ]
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
