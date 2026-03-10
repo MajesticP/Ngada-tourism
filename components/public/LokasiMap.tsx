@@ -266,7 +266,7 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
   }
 
   return (
-    <div className="relative flex flex-col lg:flex-row h-[calc(100vh-5rem)] min-h-[600px] overflow-hidden">
+    <div className="relative flex flex-col lg:flex-row h-[560px] overflow-hidden rounded-2xl border border-ngada-100 shadow-sm">
 
       {/* ── SIDEBAR ──────────────────────────── */}
       <div className="w-full lg:w-80 xl:w-96 flex flex-col bg-white border-r border-ngada-100 z-10 shadow-lg flex-shrink-0">

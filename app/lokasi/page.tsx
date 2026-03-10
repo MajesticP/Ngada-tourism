@@ -59,13 +59,13 @@ export default async function LokasiPage() {
           <p className="text-white/70 text-lg max-w-xl mx-auto">
             {withGPS} destinasi tersedia — klik marker untuk foto, alamat &amp; deskripsi
           </p>
-        </div>
+        </section>
       </section>
 
       {/* Map fills remaining screen */}
-      <div className="flex-1">
+      <section className="py-8 px-6 max-w-7xl mx-auto w-full">
         <LokasiMap spots={spots} />
-      </div>
+      </section>
 
       <Footer />
     </main>
