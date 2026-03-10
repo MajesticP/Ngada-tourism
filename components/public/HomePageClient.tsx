@@ -32,12 +32,14 @@ type WisataItem = {
 }
 
 const KATEGORI_MAP: Record<string, { label: string; color: string }> = {
-  wisata_alam:    { label: 'Wisata Alam',        color: 'bg-forest-600' },
-  wisata_budaya:  { label: 'Wisata Budaya',       color: 'bg-ngada-500' },
-  wisata_bahari:  { label: 'Wisata Bahari',       color: 'bg-blue-500' },
-  penginapan:     { label: 'Penginapan',          color: 'bg-purple-600' },
-  kuliner:        { label: 'Kuliner',              color: 'bg-orange-500' },
-  religi:         { label: 'Wisata Religi',       color: 'bg-yellow-600' },
+  wisata_alam:    { label: 'Wisata Alam',   color: 'bg-forest-600' },
+  wisata_budaya:  { label: 'Wisata Budaya', color: 'bg-ngada-500' },
+  kampung_adat:   { label: 'Kampung Adat',  color: 'bg-terra-500' },
+  wisata_bahari:  { label: 'Wisata Bahari', color: 'bg-blue-500' },
+  pulau_eksotis:  { label: 'Pulau Eksotis', color: 'bg-cyan-600' },
+  penginapan:     { label: 'Penginapan',    color: 'bg-purple-600' },
+  kuliner:        { label: 'Kuliner',        color: 'bg-orange-500' },
+  religi:         { label: 'Wisata Religi', color: 'bg-yellow-600' },
 }
 
 const IMAGE_FALLBACKS = [
@@ -52,14 +54,16 @@ const IMAGE_FALLBACKS = [
   const stats = [
     { label: 'Tempat Wisata', value: `${totalWisata}+`, icon: <Camera size={22} /> },
     { label: 'Kecamatan', value: `${kecamatanList.length}`, icon: <MapPin size={22} /> },
-    { label: 'Kampung Adat', value: '8', icon: <Users size={22} /> },
-    { label: 'Pulau Eksotis', value: '17', icon: <Waves size={22} /> },
+    { label: 'Kampung Adat', value: `${totalKampung}`, icon: <Users size={22} /> },
+    { label: 'Pulau Eksotis', value: `${totalPulau}`, icon: <Waves size={22} /> },
   ]
 
-export default function HomePageClient({ wisataData, kecamatanList, totalWisata }: {
+export default function HomePageClient({ wisataData, kecamatanList, totalWisata, totalKampung, totalPulau }: {
   wisataData: WisataItem[]
   kecamatanList: { id_kecamatan: number; nama_kecamatan: string }[]
   totalWisata: number
+  totalKampung: number
+  totalPulau: number
 }) {
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })

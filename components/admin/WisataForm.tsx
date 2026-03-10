@@ -11,19 +11,18 @@ import {
 } from 'lucide-react'
 
 const KATEGORI_OPTIONS = [
-  { value: 'wisata_alam',    label: 'Wisata Alam',       color: 'bg-forest-100 text-forest-700' },
-  { value: 'wisata_budaya',  label: 'Wisata Budaya',     color: 'bg-ngada-100 text-ngada-700' },
-  { value: 'wisata_bahari',  label: 'Wisata Bahari',     color: 'bg-blue-100 text-blue-700' },
-  { value: 'penginapan',     label: 'Penginapan / Hotel',color: 'bg-purple-100 text-purple-700' },
-  { value: 'kuliner',        label: 'Kuliner',            color: 'bg-orange-100 text-orange-700' },
-  { value: 'religi',         label: 'Wisata Religi',     color: 'bg-yellow-100 text-yellow-700' },
+  { value: 'wisata_alam',    label: 'Wisata Alam' },
+  { value: 'wisata_budaya',  label: 'Wisata Budaya' },
+  { value: 'kampung_adat',   label: 'Kampung Adat' },
+  { value: 'wisata_bahari',  label: 'Wisata Bahari' },
+  { value: 'pulau_eksotis',  label: 'Pulau Eksotis' },
+  { value: 'penginapan',     label: 'Penginapan / Hotel' },
+  { value: 'kuliner',        label: 'Kuliner' },
+  { value: 'religi',         label: 'Wisata Religi' },
 ]
 
 export function kategoriLabel(value: string) {
   return KATEGORI_OPTIONS.find(k => k.value === value)?.label ?? value
-}
-export function kategoriColor(value: string) {
-  return KATEGORI_OPTIONS.find(k => k.value === value)?.color ?? 'bg-gray-100 text-gray-700'
 }
 
 type FormData = {
@@ -209,26 +208,15 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="block text-sm font-medium text-forest-700 flex items-center gap-1.5">
             <Tag size={13} className="text-ngada-500" /> Kategori / Tipe Tempat
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <select value={form.kategori} onChange={set('kategori')} className="input-field">
             {KATEGORI_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setForm(prev => ({ ...prev, kategori: opt.value }))}
-                className={`px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all text-left ${
-                  form.kategori === opt.value
-                    ? `${opt.color} border-current shadow-sm`
-                    : 'border-ngada-100 text-forest-500 hover:border-ngada-300 bg-white'
-                }`}
-              >
-                {opt.label}
-              </button>
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
-          </div>
+          </select>
         </div>
       </div>
 

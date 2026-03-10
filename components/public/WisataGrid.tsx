@@ -26,7 +26,9 @@ const IMAGE_FALLBACKS = [
 const KATEGORI_MAP: Record<string, { label: string; color: string }> = {
   wisata_alam:    { label: 'Wisata Alam',   color: 'bg-forest-600' },
   wisata_budaya:  { label: 'Wisata Budaya', color: 'bg-ngada-500' },
+  kampung_adat:   { label: 'Kampung Adat',  color: 'bg-terra-500' },
   wisata_bahari:  { label: 'Wisata Bahari', color: 'bg-blue-500' },
+  pulau_eksotis:  { label: 'Pulau Eksotis', color: 'bg-cyan-600' },
   penginapan:     { label: 'Penginapan',    color: 'bg-purple-600' },
   kuliner:        { label: 'Kuliner',        color: 'bg-orange-500' },
   religi:         { label: 'Wisata Religi', color: 'bg-yellow-600' },

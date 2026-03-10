@@ -9,7 +9,9 @@ import { getSession } from '@/lib/auth'
 const KATEGORI_OPTIONS = [
   { value: 'wisata_alam',   label: 'Wisata Alam',        color: 'bg-forest-100 text-forest-700' },
   { value: 'wisata_budaya', label: 'Wisata Budaya',      color: 'bg-ngada-100 text-ngada-700' },
+  { value: 'kampung_adat',  label: 'Kampung Adat',       color: 'bg-terra-100 text-terra-700' },
   { value: 'wisata_bahari', label: 'Wisata Bahari',      color: 'bg-blue-100 text-blue-700' },
+  { value: 'pulau_eksotis', label: 'Pulau Eksotis',      color: 'bg-cyan-100 text-cyan-700' },
   { value: 'penginapan',    label: 'Penginapan / Hotel', color: 'bg-purple-100 text-purple-700' },
   { value: 'kuliner',       label: 'Kuliner',             color: 'bg-orange-100 text-orange-700' },
   { value: 'religi',        label: 'Wisata Religi',      color: 'bg-yellow-100 text-yellow-700' },
