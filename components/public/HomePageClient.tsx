@@ -49,14 +49,18 @@ const IMAGE_FALLBACKS = [
   'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&q=80',
 ]
 
-const stats = [
-  { label: 'Tempat Wisata', value: '30+', icon: <Camera size={22} /> },
-  { label: 'Kecamatan', value: '11', icon: <MapPin size={22} /> },
-  { label: 'Kampung Adat', value: '8', icon: <Users size={22} /> },
-  { label: 'Pulau Eksotis', value: '17', icon: <Waves size={22} /> },
-]
+  const stats = [
+    { label: 'Tempat Wisata', value: `${totalWisata}+`, icon: <Camera size={22} /> },
+    { label: 'Kecamatan', value: `${kecamatanList.length}`, icon: <MapPin size={22} /> },
+    { label: 'Kampung Adat', value: '8', icon: <Users size={22} /> },
+    { label: 'Pulau Eksotis', value: '17', icon: <Waves size={22} /> },
+  ]
 
-export default function HomePageClient({ wisataData, kecamatanList }: { wisataData: WisataItem[], kecamatanList: { id_kecamatan: number; nama_kecamatan: string }[] }) {
+export default function HomePageClient({ wisataData, kecamatanList, totalWisata }: {
+  wisataData: WisataItem[]
+  kecamatanList: { id_kecamatan: number; nama_kecamatan: string }[]
+  totalWisata: number
+}) {
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
 
@@ -350,7 +354,7 @@ export default function HomePageClient({ wisataData, kecamatanList }: { wisataDa
             viewport={{ once: true }}
           >
             <motion.h2 variants={fadeUp} className="section-title mb-3">Jelajahi per Kecamatan</motion.h2>
-            <motion.p variants={fadeUp} className="text-forest-600">11 kecamatan, masing-masing dengan keunikannya sendiri</motion.p>
+            <motion.p variants={fadeUp} className="text-forest-600">{kecamatanList.length} kecamatan, masing-masing dengan keunikannya sendiri</motion.p>
           </motion.div>
 
           <div className="flex flex-wrap gap-3 justify-center">

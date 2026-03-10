@@ -14,5 +14,14 @@ export default async function HomePage() {
       orderBy: { nama_kecamatan: 'asc' },
     }),
   ])
-  return <HomePageClient wisataData={wisata} kecamatanList={kecamatan} />
+
+  const totalWisata = await db.tempatWisata.count()
+
+  return (
+    <HomePageClient
+      wisataData={wisata}
+      kecamatanList={kecamatan}
+      totalWisata={totalWisata}
+    />
+  )
 }
