@@ -76,7 +76,6 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   const layer3Y = `${progress * -20}%`
   const contentY = `${progress * -15}%`
   const heroOpacity = Math.max(1 - progress / 0.7, 0)
-  const aboutParallaxY = `${(scrollY / 1000) * 20}%`
 
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
 
@@ -322,11 +321,9 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
       {/* ── ABOUT BANNER ──────────────────────────────────────────────────── */}
       <section id="tentang" className="relative py-32 px-6 overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center scale-110"
+          className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=1600&q=80)',
-            transform: `scale(1.1) translateY(${aboutParallaxY})`,
-            willChange: 'transform',
           }}
         />
         <div className="absolute inset-0 bg-forest-950/75" />
