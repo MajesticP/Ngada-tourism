@@ -75,7 +75,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   const layer2Y = `${progress * heroH * 0.25}px`
   const layer3Y = `${progress * heroH * -0.15}px`
   const contentY = `${progress * heroH * -0.12}px`
-  const heroOpacity = Math.max(1 - progress / 0.7, 0)
+  const heroOpacity = Math.max(1 - Math.max(progress - 0.3, 0) / 0.5, 0)
 
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
 
