@@ -75,8 +75,8 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   const layer2Y = `${progress * heroH * 0.25}px`
   const layer3Y = `${progress * heroH * -0.15}px`
   const contentY = `${progress * heroH * -0.12}px`
-  const heroOpacity = Math.max(1 - Math.max(progress - 0.3, 0) / 0.5, 0)
-
+  // Fade whole hero to dark as it scrolls out — starts at 40%, fully dark at 90%
+  const scrollOutOpacity = Math.min(Math.max((progress - 0.4) / 0.5, 0), 1)
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
 
   const stats = [
@@ -119,6 +119,12 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
           <div className="w-full h-full bg-gradient-to-t from-forest-950 via-forest-950/50 to-transparent" />
         </div>
 
+        {/* Scroll-out fade overlay — covers everything as hero exits */}
+        <div
+          className="absolute inset-0 z-40 bg-forest-950 pointer-events-none"
+          style={{ opacity: scrollOutOpacity }}
+        />
+
         {/* Floating decorative elements */}
         <div className="absolute inset-0 z-20 pointer-events-none">
           <motion.div
@@ -141,7 +147,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
         {/* Hero content */}
         <div
           className="relative z-30 text-center text-white px-6 max-w-5xl mx-auto"
-          style={{ transform: `translateY(${contentY})`, opacity: heroOpacity, willChange: 'transform, opacity' }}
+          style={{ transform: `translateY(${contentY})`, willChange: 'transform' }}
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
