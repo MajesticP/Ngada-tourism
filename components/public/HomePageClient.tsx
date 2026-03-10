@@ -74,7 +74,6 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   const layer1Y = `${progress * heroH * 0.5}px`
   const layer2Y = `${progress * heroH * 0.25}px`
   const layer3Y = `${progress * heroH * -0.15}px`
-  const contentY = `${progress * heroH * -0.12}px`
   // Fade whole hero to dark as it scrolls out — starts at 40%, fully dark at 90%
   const scrollOutOpacity = Math.min(Math.max((progress - 0.4) / 0.5, 0), 1)
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
@@ -147,7 +146,6 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
         {/* Hero content */}
         <div
           className="relative z-30 text-center text-white px-6 max-w-5xl mx-auto"
-          style={{ transform: `translateY(${contentY})`, willChange: 'transform' }}
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
