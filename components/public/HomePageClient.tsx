@@ -67,15 +67,12 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Hero parallax — px based, relative to viewport height
+  // Parallax: image moves UP at 40% of scroll speed (no gap — image oversized via scale-150)
+  const imgParallax = `translateY(${scrollY * 0.4}px)`
+  // Scroll-out: dark overlay fades in after 50% of viewport scrolled, done at 90%
   const heroH = typeof window !== 'undefined' ? window.innerHeight : 800
   const progress = Math.min(scrollY / heroH, 1)
-
-  const layer1Y = `${progress * heroH * 0.5}px`
-  const layer2Y = `${progress * heroH * 0.25}px`
-  const layer3Y = `${progress * heroH * -0.15}px`
-  // Fade whole hero to dark as it scrolls out — starts at 40%, fully dark at 90%
-  const scrollOutOpacity = Math.min(Math.max((progress - 0.4) / 0.5, 0), 1)
+  const scrollOutOpacity = Math.min(Math.max((progress - 0.5) / 0.4, 0), 1)
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
 
   const stats = [
@@ -97,28 +94,27 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-forest-950">
 
-        {/* Layer 1 — sky (slowest) */}
-        <div className="absolute inset-0 z-0 parallax-layer" style={{ transform: `translateY(${layer1Y})`, willChange: 'transform' }}>
+        {/* Background image — scale-150 so there's room to move up without gap */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{ transform: imgParallax, willChange: 'transform' }}
+        >
           <Image
             src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90"
             alt="Sky"
             fill
             priority
-            className="object-cover object-top scale-125"
+            className="object-cover object-center scale-150"
           />
         </div>
 
-        {/* Layer 2 — dark gradient overlay */}
-        <div className="absolute inset-0 z-10 parallax-layer" style={{ transform: `translateY(${layer2Y})`, willChange: 'transform' }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-forest-950/40 via-transparent to-forest-950/90" />
-        </div>
+        {/* Static dark gradient overlay */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-forest-950/40 via-transparent to-forest-950/90" />
 
-        {/* Layer 3 — fog/mist strip (faster) */}
-        <div className="absolute bottom-0 left-0 right-0 h-96 z-20 parallax-layer" style={{ transform: `translateY(${layer3Y})`, willChange: 'transform' }}>
-          <div className="w-full h-full bg-gradient-to-t from-forest-950 via-forest-950/50 to-transparent" />
-        </div>
+        {/* Static fog strip at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-64 z-20 bg-gradient-to-t from-forest-950 via-forest-950/40 to-transparent" />
 
-        {/* Scroll-out fade overlay — covers everything as hero exits */}
+        {/* Scroll-out overlay — fades in over everything */}
         <div
           className="absolute inset-0 z-40 bg-forest-950 pointer-events-none"
           style={{ opacity: scrollOutOpacity }}
