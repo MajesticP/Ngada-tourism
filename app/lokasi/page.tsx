@@ -13,7 +13,6 @@ async function getAllWisata() {
       galeri: true,
       fotos: {
         orderBy: { urutan: 'asc' },
-        take: 1,
       },
     },
     orderBy: { nama_tempat_wisata: 'asc' },
@@ -23,26 +22,27 @@ async function getAllWisata() {
 export default async function LokasiPage() {
   const allWisata = await getAllWisata()
 
-  const spots = allWisata.map(w => ({
+  const spots = allWisata.map((w) => ({
     id: w.id_tempat_wisata,
     nama: w.nama_tempat_wisata,
     alamat: w.alamat,
+    deskripsi: w.informasi1 ?? '',
+    kategori: w.kategori ?? 'wisata_alam',
     kabupaten: w.kabupaten?.nama_kabupaten ?? null,
     lat: w.lokasi?.lat ? Number(w.lokasi.lat) : null,
     lng: w.lokasi?.lng ? Number(w.lokasi.lng) : null,
     namaLokasi: w.lokasi?.nama_lokasi ?? null,
-    deskripsi: w.informasi1 ?? null,
-    // Prefer dedicated foto, fall back to galeri image
-    foto: w.fotos?.[0]?.url ?? w.galeri?.gambar ?? null,
+    foto: w.galeri?.gambar ?? null,
+    fotos: w.fotos?.map((f) => f.url) ?? [],
   }))
 
-  const countWithGPS = spots.filter(s => s.lat && s.lng).length
+  const withGPS = spots.filter((s) => s.lat && s.lng).length
 
   return (
-    <main className="min-h-screen bg-ngada-50">
+    <main className="min-h-screen bg-ngada-50 flex flex-col">
       <Navbar />
 
-      {/* Header */}
+      {/* Hero Header */}
       <section className="relative pt-32 pb-16 px-6 bg-forest-800 text-white overflow-hidden">
         <div
           className="absolute inset-0 opacity-20 bg-cover bg-center"
@@ -57,13 +57,15 @@ export default async function LokasiPage() {
           </p>
           <h1 className="font-display text-4xl md:text-6xl mb-4">Peta Wisata Ngada</h1>
           <p className="text-white/70 text-lg max-w-xl mx-auto">
-            {countWithGPS} destinasi dengan koordinat GPS — klik marker untuk foto, alamat &amp; info
+            {withGPS} destinasi tersedia — klik marker untuk foto, alamat &amp; deskripsi
           </p>
         </div>
       </section>
 
-      {/* Map + List */}
-      <LokasiMap spots={spots} />
+      {/* Map fills remaining screen */}
+      <div className="flex-1">
+        <LokasiMap spots={spots} />
+      </div>
 
       <Footer />
     </main>

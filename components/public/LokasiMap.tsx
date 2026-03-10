@@ -1,32 +1,26 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import dynamic from 'next/dynamic'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  MapPin, Navigation, ExternalLink, Search,
-  ChevronRight, X, ImageOff, Info, MapIcon
+  MapPin, Navigation, ExternalLink, Search, X,
+  ChevronLeft, ChevronRight, Camera, Info, Map,
+  Mountain, Waves, Trees, Building2
 } from 'lucide-react'
 import Link from 'next/link'
-import type { MapSpot } from './LeafletMap'
 
-// Load Leaflet map only on client (no SSR)
-const LeafletMap = dynamic(() => import('./LeafletMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-ngada-50">
-      <div className="flex flex-col items-center gap-3 text-forest-400">
-        <div className="w-10 h-10 border-3 border-forest-200 border-t-forest-600 rounded-full animate-spin" />
-        <p className="text-sm">Memuat peta…</p>
-      </div>
-    </div>
-  ),
-})
-
-export type Spot = Omit<MapSpot, 'lat' | 'lng'> & {
-  namaLokasi: string | null
+export type Spot = {
+  id: number
+  nama: string
+  alamat: string
+  deskripsi: string
+  kabupaten: string | null
   lat: number | null
   lng: number | null
+  namaLokasi: string | null
+  foto: string | null
+  fotos: string[]
+  kategori: string
 }
 
 function getDirectionsUrl(lat: number, lng: number) {
@@ -36,358 +30,491 @@ function getGoogleMapsUrl(lat: number, lng: number) {
   return `https://www.google.com/maps?q=${lat},${lng}`
 }
 
-const PILL_COLORS = [
-  'bg-forest-100 text-forest-700',
-  'bg-ngada-100 text-ngada-700',
-  'bg-terra-100 text-terra-700',
-  'bg-teal-100 text-teal-700',
-  'bg-purple-100 text-purple-700',
-  'bg-blue-100 text-blue-700',
-]
+const KATEGORI_ICON: Record<string, React.ReactNode> = {
+  wisata_alam: <Mountain size={13} />,
+  wisata_bahari: <Waves size={13} />,
+  wisata_budaya: <Building2 size={13} />,
+  wisata_buatan: <Trees size={13} />,
+}
+const KATEGORI_LABEL: Record<string, string> = {
+  wisata_alam: 'Alam',
+  wisata_bahari: 'Bahari',
+  wisata_budaya: 'Budaya',
+  wisata_buatan: 'Buatan',
+}
+const MARKER_COLORS: Record<string, string> = {
+  wisata_alam: '#2d6a4f',
+  wisata_bahari: '#1e6091',
+  wisata_budaya: '#9c6644',
+  wisata_buatan: '#606c38',
+}
 
+// ── Leaflet Map (client-only) ──────────────────────────────────────────────
+function LeafletMap({
+  spots,
+  selected,
+  onSelect,
+}: {
+  spots: Spot[]
+  selected: Spot | null
+  onSelect: (spot: Spot) => void
+}) {
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstanceRef = useRef<import('leaflet').Map | null>(null)
+  const markersRef = useRef<Record<number, import('leaflet').Marker>>({})
+
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return
+
+    import('leaflet').then((L) => {
+      delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      })
+
+      const map = L.map(mapRef.current!, {
+        center: [-8.659, 121.0536],
+        zoom: 10,
+        zoomControl: false,
+        attributionControl: false,
+      })
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+      }).addTo(map)
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map)
+      L.control.attribution({ position: 'bottomright', prefix: false }).addTo(map)
+
+      spots.forEach((spot) => {
+        if (!spot.lat || !spot.lng) return
+        const color = MARKER_COLORS[spot.kategori] ?? '#2d6a4f'
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+          <filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/></filter>
+          <path d="M16 0C7.163 0 0 7.163 0 16c0 10.5 16 26 16 26S32 26.5 32 16C32 7.163 24.837 0 16 0z" fill="${color}" filter="url(#sh)"/>
+          <circle cx="16" cy="16" r="7" fill="white" opacity="0.95"/>
+          <circle cx="16" cy="16" r="4" fill="${color}"/>
+        </svg>`
+
+        const icon = L.divIcon({
+          html: svg,
+          className: '',
+          iconSize: [32, 42],
+          iconAnchor: [16, 42],
+          popupAnchor: [0, -44],
+        })
+
+        const marker = L.marker([spot.lat, spot.lng], { icon })
+          .addTo(map)
+          .on('click', () => onSelect(spot))
+
+        marker.bindTooltip(
+          `<div style="font-weight:600;font-size:12px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;">${spot.nama}</div>`,
+          { direction: 'top', offset: [0, -44], className: 'leaflet-ngada-tooltip' }
+        )
+
+        markersRef.current[spot.id] = marker
+      })
+
+      mapInstanceRef.current = map
+    })
+
+    return () => {
+      mapInstanceRef.current?.remove()
+      mapInstanceRef.current = null
+      markersRef.current = {}
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!selected || !mapInstanceRef.current) return
+    if (!selected.lat || !selected.lng) return
+    mapInstanceRef.current.flyTo([selected.lat, selected.lng], 14, { animate: true, duration: 1.2 })
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      const el = marker.getElement()
+      if (!el) return
+      if (Number(id) === selected.id) {
+        el.style.filter = 'drop-shadow(0 4px 14px rgba(0,0,0,0.45))'
+        el.style.zIndex = '1000'
+        el.style.transform = (el.style.transform || '') + ' scale(1.35)'
+        el.style.transition = 'transform 0.3s ease'
+      } else {
+        el.style.filter = ''
+        el.style.zIndex = ''
+        el.style.transform = (el.style.transform || '').replace(' scale(1.35)', '')
+      }
+    })
+  }, [selected])
+
+  return (
+    <>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <style>{`
+        .leaflet-ngada-tooltip { background:#1a2e1a;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.25); }
+        .leaflet-ngada-tooltip::before { border-top-color:#1a2e1a !important; }
+        .leaflet-control-zoom a { font-size:16px!important;line-height:28px!important;width:28px!important;height:28px!important; }
+        .leaflet-bottom.leaflet-right { bottom:12px;right:12px; }
+      `}</style>
+      <div ref={mapRef} className="w-full h-full" />
+    </>
+  )
+}
+
+// ── Photo Carousel ─────────────────────────────────────────────────────────
+function PhotoCarousel({ fotos, fallback }: { fotos: string[]; fallback: string | null }) {
+  const [idx, setIdx] = useState(0)
+  const images = fotos.length > 0 ? fotos : fallback ? [fallback] : []
+
+  if (images.length === 0) {
+    return (
+      <div className="w-full h-52 bg-gradient-to-br from-forest-800 to-forest-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2 text-white/30">
+          <Camera size={36} />
+          <span className="text-xs">Belum ada foto</span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative w-full h-52 overflow-hidden bg-forest-900 group">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={idx}
+          src={images[idx]}
+          alt="Foto wisata"
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.35 }}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            ;(e.currentTarget as HTMLImageElement).src =
+              'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=70'
+          }}
+        />
+      </AnimatePresence>
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={() => setIdx((i) => (i - 1 + images.length) % images.length)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={() => setIdx((i) => (i + 1) % images.length)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
+          >
+            <ChevronRight size={16} />
+          </button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`rounded-full transition-all ${i === idx ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'}`}
+              />
+            ))}
+          </div>
+          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+            {idx + 1}/{images.length}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────
 export default function LokasiMap({ spots }: { spots: Spot[] }) {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Spot | null>(null)
-  const [activeKec, setActiveKec] = useState('Semua')
+  const [activeKab, setActiveKab] = useState('Semua')
+  const [panelOpen, setPanelOpen] = useState(false)
 
-  const spotsWithGPS = spots.filter(s => s.lat && s.lng) as (Spot & { lat: number; lng: number })[]
-  const kabupatenList = [
+  const spotsWithGPS = spots.filter((s) => s.lat && s.lng)
+  const spotsNoGPS = spots.filter((s) => !s.lat || !s.lng)
+
+  const kabList = [
     'Semua',
-    ...Array.from(new Set(spots.map(s => s.kabupaten).filter(Boolean) as string[])),
+    ...Array.from(new Set(spots.map((s) => s.kabupaten).filter(Boolean) as string[])),
   ]
 
-  const filtered = spotsWithGPS.filter(s => {
+  const filtered = spotsWithGPS.filter((s) => {
     const q = search.toLowerCase()
     const matchSearch =
       s.nama.toLowerCase().includes(q) ||
-      (s.kabupaten?.toLowerCase().includes(q) ?? false)
-    const matchKec = activeKec === 'Semua' || s.kabupaten === activeKec
-    return matchSearch && matchKec
+      (s.kabupaten?.toLowerCase().includes(q) ?? false) ||
+      (s.namaLokasi?.toLowerCase().includes(q) ?? false)
+    const matchKab = activeKab === 'Semua' || s.kabupaten === activeKab
+    return matchSearch && matchKab
   })
 
   const handleSelect = useCallback((spot: Spot) => {
-    setSelected(prev => (prev?.id === spot.id ? null : spot))
+    setSelected(spot)
+    setPanelOpen(true)
   }, [])
 
-  const kabColorMap = new Map(
-    kabupatenList.slice(1).map((k, i) => [k, PILL_COLORS[i % PILL_COLORS.length]])
-  )
+  const closePanel = () => {
+    setPanelOpen(false)
+    setTimeout(() => setSelected(null), 300)
+  }
 
   return (
-    <section className="py-8 px-4 md:px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+    <div className="relative flex flex-col lg:flex-row h-[calc(100vh-5rem)] min-h-[600px] overflow-hidden">
 
-          {/* ── LEFT: Spot List ──────────────────────────────── */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
+      {/* ── SIDEBAR ──────────────────────────── */}
+      <div className="w-full lg:w-80 xl:w-96 flex flex-col bg-white border-r border-ngada-100 z-10 shadow-lg flex-shrink-0">
 
-            {/* Search */}
-            <div className="relative">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-forest-400 pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Cari wisata atau kabupaten…"
-                className="input-field pl-10"
-              />
+        <div className="p-4 border-b border-ngada-100 space-y-3">
+          <div className="relative">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-forest-400 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari destinasi wisata..."
+              className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-ngada-200 text-sm text-forest-800 placeholder:text-forest-300 focus:outline-none focus:ring-2 focus:ring-forest-500/30 focus:border-forest-400 transition-all bg-ngada-50"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-forest-300 hover:text-forest-600"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {kabList.map((kab) => (
+              <button
+                key={kab}
+                onClick={() => setActiveKab(kab)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                  activeKab === kab
+                    ? 'bg-forest-700 text-white shadow-sm'
+                    : 'bg-ngada-50 border border-ngada-200 text-forest-600 hover:bg-ngada-100'
+                }`}
+              >
+                {kab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="px-4 py-2.5 border-b border-ngada-50 flex items-center justify-between">
+          <span className="text-xs text-forest-400">
+            <span className="font-semibold text-forest-700">{filtered.length}</span> lokasi ditemukan
+          </span>
+          <div className="flex items-center gap-1 text-xs text-forest-300">
+            <Map size={11} />
+            <span>Kabupaten Ngada</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-forest-300 gap-3">
+              <MapPin size={32} className="opacity-30" />
+              <p className="text-sm">Tidak ada hasil ditemukan</p>
             </div>
-
-            {/* Kabupaten filter chips */}
-            <div className="flex flex-wrap gap-2">
-              {kabupatenList.map(kec => (
-                <button
-                  key={kec}
-                  onClick={() => setActiveKec(kec)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    activeKec === kec
-                      ? 'bg-forest-700 text-white shadow-sm'
-                      : 'bg-white border border-forest-200 text-forest-600 hover:bg-forest-50'
-                  }`}
-                >
-                  {kec}
-                </button>
-              ))}
-            </div>
-
-            {/* Count */}
-            <p className="text-xs font-medium text-forest-400 uppercase tracking-wider px-1">
-              {filtered.length} lokasi ditemukan
-            </p>
-
-            {/* Scrollable spot list */}
-            <div className="space-y-2 max-h-[540px] overflow-y-auto pr-1 -mr-1">
-              {filtered.length === 0 && (
-                <div className="text-center py-12 text-forest-400 text-sm">
-                  Tidak ada hasil untuk pencarian ini
-                </div>
-              )}
-
+          ) : (
+            <div className="p-3 space-y-2">
               {filtered.map((spot, i) => {
                 const isActive = selected?.id === spot.id
+                const thumb = spot.fotos[0] ?? spot.foto
                 return (
                   <motion.button
                     key={spot.id}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: Math.min(i * 0.03, 0.3) }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
                     onClick={() => handleSelect(spot)}
-                    className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden ${
+                    className={`w-full text-left rounded-xl overflow-hidden border transition-all duration-200 ${
                       isActive
-                        ? 'bg-forest-800 border-forest-800 shadow-lg shadow-forest-800/20'
-                        : 'bg-white border-ngada-100 hover:border-forest-300 hover:shadow-sm'
+                        ? 'border-forest-700 shadow-lg shadow-forest-800/15 ring-2 ring-forest-700/20'
+                        : 'border-ngada-100 hover:border-forest-300 hover:shadow-sm'
                     }`}
                   >
-                    {/* Foto thumbnail strip when active */}
-                    <AnimatePresence>
-                      {isActive && spot.foto && (
-                        <motion.div
-                          initial={{ height: 0 }}
-                          animate={{ height: 100 }}
-                          exit={{ height: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <img
-                            src={spot.foto}
-                            alt={spot.nama}
-                            className="w-full h-[100px] object-cover"
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <div className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          isActive ? 'bg-ngada-500' : 'bg-forest-100'
-                        }`}>
-                          <MapPin size={14} className={isActive ? 'text-white' : 'text-forest-600'} />
-                        </div>
+                    {thumb && (
+                      <div className="relative h-24 bg-ngada-100 overflow-hidden">
+                        <img
+                          src={thumb}
+                          alt={spot.nama}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        {spot.fotos.length > 1 && (
+                          <div className="absolute bottom-1.5 right-2 flex items-center gap-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            <Camera size={9} />{spot.fotos.length}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className={`p-3 ${isActive ? 'bg-forest-800 text-white' : 'bg-white'}`}>
+                      <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium text-sm leading-tight ${isActive ? 'text-white' : 'text-forest-900'}`}>
+                          <p className={`font-semibold text-sm leading-tight truncate ${isActive ? 'text-white' : 'text-forest-900'}`}>
                             {spot.nama}
                           </p>
-                          {spot.kabupaten && (
-                            <span className={`inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                              isActive ? 'bg-white/20 text-white/80' : kabColorMap.get(spot.kabupaten) ?? PILL_COLORS[0]
-                            }`}>
-                              {spot.kabupaten}
-                            </span>
-                          )}
-                          {spot.lat && spot.lng && (
-                            <p className={`font-mono text-[10px] mt-1 ${isActive ? 'text-ngada-200' : 'text-forest-300'}`}>
-                              {spot.lat.toFixed(4)}, {spot.lng.toFixed(4)}
-                            </p>
-                          )}
+                          <p className={`text-xs mt-0.5 truncate ${isActive ? 'text-white/60' : 'text-forest-400'}`}>
+                            {spot.kabupaten ?? spot.namaLokasi ?? '—'}
+                          </p>
                         </div>
-                        <ChevronRight
-                          size={14}
-                          className={`flex-shrink-0 mt-1 transition-transform ${isActive ? 'text-white rotate-90' : 'text-forest-300'}`}
-                        />
+                        <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          isActive ? 'bg-white/20 text-white/80' : 'bg-ngada-50 text-forest-500 border border-ngada-100'
+                        }`}>
+                          {KATEGORI_ICON[spot.kategori]}
+                          {KATEGORI_LABEL[spot.kategori] ?? spot.kategori}
+                        </span>
                       </div>
-
-                      {/* Action row when active */}
-                      <AnimatePresence>
-                        {isActive && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="mt-3 pt-3 border-t border-white/20 flex gap-2"
-                          >
-                            <a
-                              href={getDirectionsUrl(spot.lat, spot.lng)}
-                              target="_blank" rel="noopener noreferrer"
-                              onClick={e => e.stopPropagation()}
-                              className="flex-1 flex items-center justify-center gap-1.5 bg-ngada-500 hover:bg-ngada-400 text-white text-xs font-medium py-2 rounded-lg transition-colors"
-                            >
-                              <Navigation size={12} />
-                              Arah
-                            </a>
-                            <Link
-                              href={`/wisata/${spot.id}`}
-                              onClick={e => e.stopPropagation()}
-                              className="flex-1 flex items-center justify-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium py-2 rounded-lg transition-colors"
-                            >
-                              <Info size={12} />
-                              Detail
-                            </Link>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </div>
                   </motion.button>
                 )
               })}
+
+              {spotsNoGPS.length > 0 && activeKab === 'Semua' && !search && (
+                <div className="mt-3 pt-3 border-t border-ngada-100">
+                  <p className="text-xs text-forest-300 uppercase tracking-wider font-medium mb-2 px-1">
+                    Belum ada koordinat GPS
+                  </p>
+                  {spotsNoGPS.map((spot) => (
+                    <div key={spot.id} className="flex items-center gap-2 py-2 px-3 rounded-xl border border-dashed border-ngada-200 mb-1.5 bg-ngada-50/50">
+                      <MapPin size={12} className="text-ngada-300 flex-shrink-0" />
+                      <span className="text-xs text-forest-400 truncate">{spot.nama}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
+        </div>
+      </div>
 
-          {/* ── RIGHT: Map + Popup ───────────────────────────── */}
-          <div className="lg:col-span-3">
-            <div className="sticky top-24">
+      {/* ── MAP ──────────────────────────────── */}
+      <div className="flex-1 relative bg-ngada-100">
+        <LeafletMap spots={spotsWithGPS} selected={selected} onSelect={handleSelect} />
+        <AnimatePresence>
+          {!selected && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-forest-900/90 text-white text-xs px-4 py-2.5 rounded-full flex items-center gap-2 pointer-events-none backdrop-blur-sm shadow-lg z-10"
+            >
+              <MapPin size={12} className="text-ngada-300" />
+              Klik marker pada peta untuk melihat detail wisata
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-              {/* Map container */}
-              <div className="relative rounded-2xl overflow-hidden shadow-md border border-ngada-100" style={{ height: 580 }}>
+      {/* ── DETAIL PANEL ─────────────────────── */}
+      <AnimatePresence>
+        {panelOpen && selected && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closePanel}
+              className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+            />
+            <motion.div
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              className="fixed lg:absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white z-30 shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Photo header */}
+              <div className="relative bg-forest-900 flex-shrink-0">
+                <PhotoCarousel fotos={selected.fotos} fallback={selected.foto} />
+                <button
+                  onClick={closePanel}
+                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors backdrop-blur-sm z-10"
+                >
+                  <X size={15} />
+                </button>
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-forest-900/70 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm">
+                  {KATEGORI_ICON[selected.kategori]}
+                  {KATEGORI_LABEL[selected.kategori] ?? selected.kategori}
+                </div>
+              </div>
 
-                {/* Map header bar */}
-                <div className="absolute top-0 left-0 right-0 z-[1000] bg-white/90 backdrop-blur-sm border-b border-ngada-100 px-4 py-2.5 flex items-center gap-2">
-                  <MapIcon size={14} className="text-forest-500" />
-                  <span className="text-sm text-forest-700 font-medium">
-                    {selected ? selected.nama : 'Peta Kabupaten Ngada'}
-                  </span>
-                  {selected && (
-                    <button
-                      onClick={() => setSelected(null)}
-                      className="ml-auto flex items-center gap-1 text-xs text-forest-400 hover:text-forest-700 transition-colors"
-                    >
-                      <X size={13} />
-                      Tutup
-                    </button>
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-5 border-b border-ngada-100">
+                  <h2 className="font-display text-2xl text-forest-900 leading-tight">{selected.nama}</h2>
+                  <div className="flex items-start gap-1.5 mt-2">
+                    <MapPin size={13} className="text-ngada-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-forest-500 leading-snug">{selected.alamat}</p>
+                  </div>
+                  {selected.kabupaten && (
+                    <div className="mt-2 inline-flex items-center gap-1.5 bg-forest-50 text-forest-600 text-xs px-3 py-1 rounded-full border border-forest-100">
+                      <Map size={10} />{selected.kabupaten}
+                    </div>
                   )}
                 </div>
 
-                {/* Leaflet map */}
-                <div className="absolute inset-0 pt-[41px]">
-                  <LeafletMap
-                    spots={spotsWithGPS}
-                    selected={selected}
-                    onSelect={handleSelect}
-                  />
-                </div>
-
-                {/* ── Popup card floating at bottom ── */}
-                <AnimatePresence>
-                  {selected && (
-                    <motion.div
-                      key={selected.id}
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 30 }}
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      className="absolute bottom-4 left-4 right-4 z-[1000] bg-white rounded-2xl shadow-2xl overflow-hidden border border-ngada-100"
-                      style={{ maxHeight: 260 }}
+                {selected.deskripsi && (
+                  <div className="p-5 border-b border-ngada-100">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <Info size={13} className="text-forest-400" />
+                      <span className="text-xs font-semibold text-forest-400 uppercase tracking-wider">Informasi</span>
+                    </div>
+                    <p className="text-sm text-forest-600 leading-relaxed line-clamp-6">{selected.deskripsi}</p>
+                    <Link
+                      href={`/wisata/${selected.id}`}
+                      className="mt-3 inline-flex items-center gap-1 text-xs text-ngada-600 hover:text-ngada-800 font-medium transition-colors"
                     >
-                      <div className="flex gap-0">
+                      Lihat selengkapnya <ChevronRight size={12} />
+                    </Link>
+                  </div>
+                )}
 
-                        {/* Photo */}
-                        <div className="w-36 flex-shrink-0 relative bg-forest-100">
-                          {selected.foto ? (
-                            <img
-                              src={selected.foto}
-                              alt={selected.nama}
-                              className="w-full h-full object-cover"
-                              style={{ maxHeight: 260 }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-forest-100 to-forest-200" style={{ minHeight: 160 }}>
-                              <ImageOff size={28} className="text-forest-300" />
-                            </div>
-                          )}
-                          {/* Kabupaten badge */}
-                          {selected.kabupaten && (
-                            <span className="absolute top-2 left-2 bg-forest-800/85 backdrop-blur-sm text-white text-[10px] font-medium px-2 py-0.5 rounded-full">
-                              {selected.kabupaten}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
-                          <div>
-                            <h3 className="font-display text-forest-900 text-base leading-tight line-clamp-2 mb-1">
-                              {selected.nama}
-                            </h3>
-                            {selected.alamat && (
-                              <p className="text-xs text-forest-500 flex items-start gap-1 mt-1.5">
-                                <MapPin size={11} className="flex-shrink-0 mt-0.5 text-ngada-400" />
-                                <span className="line-clamp-2">{selected.alamat}</span>
-                              </p>
-                            )}
-                            {selected.deskripsi && (
-                              <p className="text-xs text-forest-600 mt-2 line-clamp-3 leading-relaxed">
-                                {selected.deskripsi}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex gap-2 mt-3">
-                            <a
-                              href={getDirectionsUrl(selected.lat, selected.lng)}
-                              target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 bg-forest-700 hover:bg-forest-600 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
-                            >
-                              <Navigation size={11} />
-                              Petunjuk Arah
-                            </a>
-                            <Link
-                              href={`/wisata/${selected.id}`}
-                              className="flex items-center gap-1.5 bg-ngada-50 hover:bg-ngada-100 text-forest-700 text-xs font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap border border-ngada-200"
-                            >
-                              <Info size={11} />
-                              Lihat Detail
-                            </Link>
-                            <a
-                              href={getGoogleMapsUrl(selected.lat, selected.lng)}
-                              target="_blank" rel="noopener noreferrer"
-                              className="ml-auto flex items-center gap-1 text-xs text-forest-400 hover:text-forest-600 px-2 py-2 transition-colors"
-                              title="Buka di Google Maps"
-                            >
-                              <ExternalLink size={12} />
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Hint when no selection */}
-                {!selected && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[999] bg-forest-800/80 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full pointer-events-none whitespace-nowrap">
-                    Klik marker untuk melihat info lokasi
+                {selected.lat && selected.lng && (
+                  <div className="px-5 py-3">
+                    <p className="font-mono text-xs text-forest-300">
+                      {selected.lat.toFixed(6)}, {selected.lng.toFixed(6)}
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Quick-access grid when nothing selected */}
-              <AnimatePresence>
-                {!selected && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-4 bg-white rounded-2xl p-5 border border-ngada-100 shadow-sm"
+              {/* CTA buttons */}
+              {selected.lat && selected.lng && (
+                <div className="p-4 border-t border-ngada-100 grid grid-cols-2 gap-3 flex-shrink-0 bg-white">
+                  <a
+                    href={getDirectionsUrl(selected.lat, selected.lng)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-forest-700 hover:bg-forest-800 text-white text-sm font-medium py-3 rounded-xl transition-colors"
                   >
-                    <p className="font-display text-lg text-forest-900 mb-3">Semua Lokasi</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {spotsWithGPS.slice(0, 8).map((spot, i) => (
-                        <button
-                          key={spot.id}
-                          onClick={() => handleSelect(spot)}
-                          className="flex items-center gap-2 p-2.5 rounded-xl bg-ngada-50 hover:bg-ngada-100 transition-colors text-left group"
-                        >
-                          <div className="w-6 h-6 rounded-full bg-forest-600 flex items-center justify-center flex-shrink-0">
-                            <MapPin size={10} className="text-white" />
-                          </div>
-                          <span className="text-xs text-forest-700 font-medium line-clamp-1 group-hover:text-forest-900">
-                            {spot.nama}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                    {spotsWithGPS.length > 8 && (
-                      <p className="text-xs text-forest-400 text-center mt-3">
-                        +{spotsWithGPS.length - 8} lokasi lainnya — pilih dari daftar kiri
-                      </p>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
+                    <Navigation size={15} />
+                    Petunjuk Arah
+                  </a>
+                  <a
+                    href={getGoogleMapsUrl(selected.lat, selected.lng)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-ngada-50 hover:bg-ngada-100 text-forest-700 border border-ngada-200 text-sm font-medium py-3 rounded-xl transition-colors"
+                  >
+                    <ExternalLink size={15} />
+                    Google Maps
+                  </a>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
