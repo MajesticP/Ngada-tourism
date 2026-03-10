@@ -88,7 +88,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-forest-950">
 
         {/* Layer 1 — sky (slowest) */}
         <motion.div className="absolute inset-0 z-0" style={{ y: layer1Y }}>
@@ -97,7 +97,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
             alt="Sky"
             fill
             priority
-            className="object-cover object-top scale-110"
+            className="object-cover object-top scale-125"
           />
         </motion.div>
 
@@ -107,8 +107,8 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
         </motion.div>
 
         {/* Layer 3 — fog/mist strip (faster) */}
-        <motion.div className="absolute bottom-0 left-0 right-0 h-64 z-20" style={{ y: layer3Y }}>
-          <div className="w-full h-full bg-gradient-to-t from-forest-950/80 via-forest-950/30 to-transparent" />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-96 z-20" style={{ y: layer3Y }}>
+          <div className="w-full h-full bg-gradient-to-t from-forest-950 via-forest-950/50 to-transparent" />
         </motion.div>
 
         {/* Floating decorative elements */}
