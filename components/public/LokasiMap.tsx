@@ -23,8 +23,10 @@ const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ),
 })
 
-export type Spot = MapSpot & {
+export type Spot = Omit<MapSpot, 'lat' | 'lng'> & {
   namaLokasi: string | null
+  lat: number | null
+  lng: number | null
 }
 
 function getDirectionsUrl(lat: number, lng: number) {
