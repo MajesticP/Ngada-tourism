@@ -52,6 +52,7 @@ model TempatWisata {
   nama_tempat_wisata String
   alamat             String    @db.Text
   informasi1         String    @db.Text
+  kategori           String    @default("wisata_alam")
   id_kecamatan       Int?
   id_lokasi          Int?
   id_galeri          Int?

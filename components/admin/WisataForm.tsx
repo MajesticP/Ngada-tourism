@@ -7,13 +7,30 @@ import Image from 'next/image'
 import toast from 'react-hot-toast'
 import {
   Save, ArrowLeft, Loader2, MapPin, ExternalLink,
-  ImageIcon, Trash2, Upload, X
+  ImageIcon, Trash2, Upload, X, Tag
 } from 'lucide-react'
+
+const KATEGORI_OPTIONS = [
+  { value: 'wisata_alam',    label: 'Wisata Alam',       color: 'bg-forest-100 text-forest-700' },
+  { value: 'wisata_budaya',  label: 'Wisata Budaya',     color: 'bg-ngada-100 text-ngada-700' },
+  { value: 'wisata_bahari',  label: 'Wisata Bahari',     color: 'bg-blue-100 text-blue-700' },
+  { value: 'penginapan',     label: 'Penginapan / Hotel',color: 'bg-purple-100 text-purple-700' },
+  { value: 'kuliner',        label: 'Kuliner',            color: 'bg-orange-100 text-orange-700' },
+  { value: 'religi',         label: 'Wisata Religi',     color: 'bg-yellow-100 text-yellow-700' },
+]
+
+export function kategoriLabel(value: string) {
+  return KATEGORI_OPTIONS.find(k => k.value === value)?.label ?? value
+}
+export function kategoriColor(value: string) {
+  return KATEGORI_OPTIONS.find(k => k.value === value)?.color ?? 'bg-gray-100 text-gray-700'
+}
 
 type FormData = {
   nama_tempat_wisata: string
   alamat: string
   informasi1: string
+  kategori: string
   id_kecamatan: number | null
   galeri_nama: string
   galeri_gambar: string
@@ -29,6 +46,7 @@ type Props = {
     nama_tempat_wisata?: string
     alamat?: string
     informasi1?: string
+    kategori?: string
     id_kecamatan?: number | null
     galeri_nama?: string
     galeri_gambar?: string
@@ -53,6 +71,7 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
     nama_tempat_wisata: defaultValues?.nama_tempat_wisata ?? '',
     alamat:             defaultValues?.alamat ?? '',
     informasi1:         defaultValues?.informasi1 ?? '',
+    kategori:           defaultValues?.kategori ?? 'wisata_alam',
     id_kecamatan:       defaultValues?.id_kecamatan ?? null,
     galeri_nama:        defaultValues?.galeri_nama ?? '',
     galeri_gambar:      defaultValues?.galeri_gambar ?? '',
@@ -123,6 +142,7 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
         nama_tempat_wisata: form.nama_tempat_wisata,
         alamat:             form.alamat,
         informasi1:         form.informasi1,
+        kategori:           form.kategori,
         id_kecamatan:       form.id_kecamatan,
         galeri_nama:        form.galeri_nama  || null,
         galeri_gambar:      form.galeri_gambar || null,
@@ -187,6 +207,28 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
               <option key={k.id_kecamatan} value={k.id_kecamatan}>{k.nama_kecamatan}</option>
             ))}
           </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-forest-700 flex items-center gap-1.5">
+            <Tag size={13} className="text-ngada-500" /> Kategori / Tipe Tempat
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {KATEGORI_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, kategori: opt.value }))}
+                className={`px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all text-left ${
+                  form.kategori === opt.value
+                    ? `${opt.color} border-current shadow-sm`
+                    : 'border-ngada-100 text-forest-500 hover:border-ngada-300 bg-white'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -45,7 +45,7 @@ export default async function DashboardPage() {
     .map(k => ({ name: k.nama_kecamatan, value: k._count.tempat_wisata }))
 
   const quickActions = [
-    { href: '/admin/wisata/new', label: 'Tambah Wisata', icon: Plus, color: 'bg-forest-600 hover:bg-forest-700' },
+    { href: '/admin/wisata/new', label: 'Tambah Destinasi', icon: Plus, color: 'bg-forest-600 hover:bg-forest-700' },
     { href: '/admin/kecamatan', label: 'Kelola Kecamatan', icon: Plus, color: 'bg-ngada-500 hover:bg-ngada-600' },
     { href: '/admin/pesan', label: 'Lihat Pesan', icon: Plus, color: 'bg-terra-500 hover:bg-terra-600' },
     { href: '/admin/admins', label: 'Data Admin', icon: Plus, color: 'bg-purple-600 hover:bg-purple-700' },

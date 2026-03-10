@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const {
-      nama_tempat_wisata, alamat, informasi1, id_kecamatan,
+      nama_tempat_wisata, alamat, informasi1, kategori, id_kecamatan,
       galeri_nama, galeri_gambar, galeri_keterangan,
       lat, lng,
     } = body
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     const wisata = await db.tempatWisata.create({
-      data: { nama_tempat_wisata, alamat, informasi1, id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi },
+      data: { nama_tempat_wisata, alamat, informasi1, kategori: kategori ?? 'wisata_alam', id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi },
     })
 
     return NextResponse.json(wisata, { status: 201 })

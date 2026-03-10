@@ -110,3 +110,8 @@ CREATE TABLE IF NOT EXISTS pesan (
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id_pesan)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Migration: add kategori column to tempat_wisata
+ALTER TABLE tempat_wisata
+  ADD COLUMN IF NOT EXISTS kategori VARCHAR(50) NOT NULL DEFAULT 'wisata_alam'
+  AFTER informasi1;

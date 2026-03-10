@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const id = parseInt(paramId)
     const body = await req.json()
     const {
-      nama_tempat_wisata, alamat, informasi1, id_kecamatan,
+      nama_tempat_wisata, alamat, informasi1, kategori, id_kecamatan,
       galeri_nama, galeri_gambar, galeri_keterangan,
       lat, lng,
     } = body
@@ -71,7 +71,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     const wisata = await db.tempatWisata.update({
       where: { id_tempat_wisata: id },
-      data: { nama_tempat_wisata, alamat, informasi1, id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi },
+      data: { nama_tempat_wisata, alamat, informasi1, kategori: kategori ?? 'wisata_alam', id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi },
     })
 
     return NextResponse.json(wisata)
