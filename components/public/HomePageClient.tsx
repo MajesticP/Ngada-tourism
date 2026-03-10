@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ChevronDown, ArrowRight, Users, Camera, Mountain, Waves } from 'lucide-react'
@@ -59,15 +59,24 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   totalPulau: number
 }) {
   const heroRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-  const { scrollY } = useScroll()
+  const [scrollY, setScrollY] = useState(0)
 
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
-  const layer1Y = useTransform(scrollYProgress, [0, 1], ['0%', '60%'])
-  const layer2Y = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
-  const layer3Y = useTransform(scrollYProgress, [0, 1], ['0%', '-20%'])
-  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-15%'])
-  const aboutY = useTransform(scrollY, [0, 1000], ['0%', '20%'])
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Hero height = 100vh, parallax values derived from raw scrollY
+  const heroH = typeof window !== 'undefined' ? window.innerHeight : 800
+  const progress = Math.min(scrollY / heroH, 1) // 0 → 1 as hero scrolls out
+
+  const layer1Y = `${progress * 60}%`
+  const layer2Y = `${progress * 30}%`
+  const layer3Y = `${progress * -20}%`
+  const contentY = `${progress * -15}%`
+  const heroOpacity = Math.max(1 - progress / 0.7, 0)
+  const aboutParallaxY = `${(scrollY / 1000) * 20}%`
 
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
 
@@ -91,7 +100,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-forest-950">
 
         {/* Layer 1 — sky (slowest) */}
-        <motion.div className="absolute inset-0 z-0 parallax-layer" style={{ y: layer1Y }}>
+        <div className="absolute inset-0 z-0 parallax-layer" style={{ transform: `translateY(${layer1Y})`, willChange: 'transform' }}>
           <Image
             src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90"
             alt="Sky"
@@ -99,17 +108,17 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
             priority
             className="object-cover object-top scale-125"
           />
-        </motion.div>
+        </div>
 
         {/* Layer 2 — dark gradient overlay */}
-        <motion.div className="absolute inset-0 z-10 parallax-layer" style={{ y: layer2Y }}>
+        <div className="absolute inset-0 z-10 parallax-layer" style={{ transform: `translateY(${layer2Y})`, willChange: 'transform' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-forest-950/40 via-transparent to-forest-950/90" />
-        </motion.div>
+        </div>
 
         {/* Layer 3 — fog/mist strip (faster) */}
-        <motion.div className="absolute bottom-0 left-0 right-0 h-96 z-20 parallax-layer" style={{ y: layer3Y }}>
+        <div className="absolute bottom-0 left-0 right-0 h-96 z-20 parallax-layer" style={{ transform: `translateY(${layer3Y})`, willChange: 'transform' }}>
           <div className="w-full h-full bg-gradient-to-t from-forest-950 via-forest-950/50 to-transparent" />
-        </motion.div>
+        </div>
 
         {/* Floating decorative elements */}
         <div className="absolute inset-0 z-20 pointer-events-none">
@@ -131,9 +140,9 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
         </div>
 
         {/* Hero content */}
-        <motion.div
+        <div
           className="relative z-30 text-center text-white px-6 max-w-5xl mx-auto"
-          style={{ y: contentY, opacity: heroOpacity }}
+          style={{ transform: `translateY(${contentY})`, opacity: heroOpacity, willChange: 'transform, opacity' }}
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -181,7 +190,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
               Lihat Destinasi
             </a>
           </motion.div>
-        </motion.div>
+        </div>
 
         {/* Scroll indicator */}
         <motion.div
@@ -312,11 +321,12 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
 
       {/* ── ABOUT BANNER ──────────────────────────────────────────────────── */}
       <section id="tentang" className="relative py-32 px-6 overflow-hidden">
-        <motion.div
+        <div
           className="absolute inset-0 bg-cover bg-center scale-110"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=1600&q=80)',
-            y: aboutY,
+            transform: `scale(1.1) translateY(${aboutParallaxY})`,
+            willChange: 'transform',
           }}
         />
         <div className="absolute inset-0 bg-forest-950/75" />
