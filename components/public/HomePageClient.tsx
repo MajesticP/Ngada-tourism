@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, ChevronDown, ArrowRight, Users, Camera, Mountain, Waves, TreePine } from 'lucide-react'
+import { MapPin, ChevronDown, ArrowRight, Users, Camera, Mountain, Waves } from 'lucide-react'
 import Navbar from '@/components/public/Navbar'
 import Footer from '@/components/public/Footer'
 
@@ -26,8 +26,18 @@ type WisataItem = {
   nama_tempat_wisata: string
   alamat: string
   informasi1: string
+  kategori: string
   kecamatan: { nama_kecamatan: string } | null
   galeri: { gambar: string | null; nama_galeri: string } | null
+}
+
+const KATEGORI_MAP: Record<string, { label: string; color: string }> = {
+  wisata_alam:    { label: 'Wisata Alam',        color: 'bg-forest-600' },
+  wisata_budaya:  { label: 'Wisata Budaya',       color: 'bg-ngada-500' },
+  wisata_bahari:  { label: 'Wisata Bahari',       color: 'bg-blue-500' },
+  penginapan:     { label: 'Penginapan',          color: 'bg-purple-600' },
+  kuliner:        { label: 'Kuliner',              color: 'bg-orange-500' },
+  religi:         { label: 'Wisata Religi',       color: 'bg-yellow-600' },
 }
 
 const IMAGE_FALLBACKS = [
@@ -38,14 +48,6 @@ const IMAGE_FALLBACKS = [
   'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
   'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&q=80',
 ]
-
-const CATEGORY_ICONS = [
-  <Users key="u" size={14} />,
-  <Waves key="w" size={14} />,
-  <Mountain key="m" size={14} />,
-  <TreePine key="t" size={14} />,
-]
-const CATEGORY_COLORS = ['bg-terra-500', 'bg-forest-500', 'bg-ngada-500', 'bg-forest-600']
 
 const stats = [
   { label: 'Tempat Wisata', value: '30+', icon: <Camera size={22} /> },
@@ -251,8 +253,7 @@ export default function HomePageClient({ wisataData }: { wisataData: WisataItem[
                   const imgSrc = w.galeri?.gambar
                     ? w.galeri.gambar.startsWith("http") ? w.galeri.gambar : `/uploads/${w.galeri.gambar}`
                     : IMAGE_FALLBACKS[i % IMAGE_FALLBACKS.length]
-                  const icon = CATEGORY_ICONS[i % CATEGORY_ICONS.length]
-                  const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length]
+                  const kat = KATEGORI_MAP[(w as any).kategori] ?? KATEGORI_MAP.wisata_alam
 
                   return (
                     <motion.div
@@ -261,7 +262,6 @@ export default function HomePageClient({ wisataData }: { wisataData: WisataItem[
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.08, duration: 0.5 }}
                     >
-                      {/* ✅ FIX: Use real id_tempat_wisata from DB */}
                       <Link href={`/wisata/${w.id_tempat_wisata}`} className="card-wisata block group">
                         <div className="relative h-56 overflow-hidden">
                           <Image
@@ -271,16 +271,19 @@ export default function HomePageClient({ wisataData }: { wisataData: WisataItem[
                             className="object-cover group-hover:scale-110 transition-transform duration-700"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
-                          <span className={`absolute top-4 left-4 badge text-white ${color}`}>
-                            {icon}
-                            {w.kecamatan?.nama_kecamatan ?? 'Ngada'}
-                          </span>
+                          <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
+                            <span className={`badge text-white ${kat.color}`}>
+                              {kat.label}
+                            </span>
+                            {w.kecamatan && (
+                              <span className="badge text-white bg-black/40 backdrop-blur-sm">
+                                <MapPin size={10} />
+                                {w.kecamatan.nama_kecamatan}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="p-5">
-                          <div className="flex items-center gap-1 text-ngada-400 text-xs mb-2">
-                            <MapPin size={11} />
-                            <span>{w.kecamatan?.nama_kecamatan ?? '—'}</span>
-                          </div>
                           <h3 className="font-display text-xl text-forest-900 mb-2 group-hover:text-ngada-600 transition-colors">
                             {w.nama_tempat_wisata}
                           </h3>

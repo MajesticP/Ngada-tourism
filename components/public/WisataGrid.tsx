@@ -10,6 +10,7 @@ type Wisata = {
   nama_tempat_wisata: string
   alamat: string
   informasi1: string
+  kategori?: string
   kecamatan: { nama_kecamatan: string } | null
   lokasi: { nama_lokasi: string; lat: number | null; lng: number | null } | null
   galeri: { gambar: string | null; nama_galeri: string } | null
@@ -21,6 +22,15 @@ const IMAGE_FALLBACKS = [
   'https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80',
   'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&q=80',
 ]
+
+const KATEGORI_MAP: Record<string, { label: string; color: string }> = {
+  wisata_alam:    { label: 'Wisata Alam',   color: 'bg-forest-600' },
+  wisata_budaya:  { label: 'Wisata Budaya', color: 'bg-ngada-500' },
+  wisata_bahari:  { label: 'Wisata Bahari', color: 'bg-blue-500' },
+  penginapan:     { label: 'Penginapan',    color: 'bg-purple-600' },
+  kuliner:        { label: 'Kuliner',        color: 'bg-orange-500' },
+  religi:         { label: 'Wisata Religi', color: 'bg-yellow-600' },
+}
 
 export default function WisataGrid({ wisata }: { wisata: Wisata[] }) {
   if (wisata.length === 0) {
@@ -38,6 +48,7 @@ export default function WisataGrid({ wisata }: { wisata: Wisata[] }) {
         const imgSrc = w.galeri?.gambar
           ? w.galeri.gambar.startsWith("http") ? w.galeri.gambar : `/uploads/${w.galeri.gambar}`
           : IMAGE_FALLBACKS[i % IMAGE_FALLBACKS.length]
+        const kat = KATEGORI_MAP[w.kategori ?? 'wisata_alam'] ?? KATEGORI_MAP.wisata_alam
 
         return (
           <motion.div
@@ -46,7 +57,7 @@ export default function WisataGrid({ wisata }: { wisata: Wisata[] }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07, duration: 0.5 }}
           >
-            <Link href={`/wisata/${w.id_tempat_wisata}`} className="card-wisata block">
+            <Link href={`/wisata/${w.id_tempat_wisata}`} className="card-wisata block group">
               <div className="relative h-56 overflow-hidden">
                 <Image
                   src={imgSrc}
@@ -59,12 +70,19 @@ export default function WisataGrid({ wisata }: { wisata: Wisata[] }) {
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent" />
+                <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
+                  <span className={`badge text-white ${kat.color}`}>
+                    {kat.label}
+                  </span>
+                  {w.kecamatan && (
+                    <span className="badge text-white bg-black/40 backdrop-blur-sm">
+                      <MapPin size={10} />
+                      {w.kecamatan.nama_kecamatan}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="p-5">
-                <div className="flex items-center gap-1 text-ngada-400 text-xs mb-2">
-                  <MapPin size={11} />
-                  <span>{w.kecamatan?.nama_kecamatan ?? '—'}</span>
-                </div>
                 <h3 className="font-display text-xl text-forest-900 mb-2 group-hover:text-ngada-600 transition-colors">
                   {w.nama_tempat_wisata}
                 </h3>
