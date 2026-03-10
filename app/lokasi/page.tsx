@@ -18,14 +18,7 @@ async function getAllWisata() {
 }
 
 export default async function LokasiPage() {
-  const [wisataWithLokasi, allWisata] = await Promise.all([
-    db.tempatWisata.findMany({
-      where: { lokasi: { lat: { not: null }, lng: { not: null } } },
-      include: { kabupaten: true, lokasi: true, galeri: true, fotos: { orderBy: { urutan: 'asc' } } },
-      orderBy: { nama_tempat_wisata: 'asc' },
-    }),
-    getAllWisata(),
-  ])
+  const allWisata = await getAllWisata()
 
   const spots = allWisata.map(w => ({
     id: w.id_tempat_wisata,
@@ -54,12 +47,11 @@ export default async function LokasiPage() {
           <p className="text-ngada-300 uppercase tracking-widest text-sm mb-3">Temukan Lokasinya</p>
           <h1 className="font-display text-4xl md:text-6xl mb-4">Peta Wisata Ngada</h1>
           <p className="text-white/70 text-lg max-w-xl mx-auto">
-            {spots.filter(s => s.lat && s.lng).length} destinasi dengan koordinat GPS — klik untuk langsung buka Google Maps
+            {spots.filter(s => s.lat && s.lng).length} destinasi — klik pin di peta untuk foto, alamat &amp; deskripsi
           </p>
         </div>
       </section>
 
-      {/* Map + List */}
       <LokasiMap spots={spots} />
 
       <Footer />

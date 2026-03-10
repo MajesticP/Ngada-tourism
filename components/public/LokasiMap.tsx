@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Navigation, ExternalLink, Search, Map, ChevronRight } from 'lucide-react'
-import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
+import { Search, Navigation, ExternalLink, X, MapPin, Camera } from 'lucide-react'
 
-type Spot = {
+export type Spot = {
   id: number
   nama: string
   alamat: string
@@ -18,55 +16,110 @@ type Spot = {
   fotos: string[]
 }
 
-function getGoogleMapsUrl(lat: number, lng: number) {
-  return `https://www.google.com/maps?q=${lat},${lng}`
-}
-
-function getDirectionsUrl(lat: number, lng: number) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-}
-
-const CATEGORY_COLORS = [
-  'bg-forest-500', 'bg-ngada-500', 'bg-terra-500',
-  'bg-purple-500', 'bg-blue-500', 'bg-teal-500',
-]
-
 export default function LokasiMap({ spots }: { spots: Spot[] }) {
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstanceRef = useRef<import('leaflet').Map | null>(null)
   const [search, setSearch] = useState('')
+  const [activeKab, setActiveKab] = useState('Semua')
   const [selected, setSelected] = useState<Spot | null>(null)
-  const [activeKec, setActiveKec] = useState<string>('Semua')
+  const [photoIdx, setPhotoIdx] = useState(0)
 
   const spotsWithGPS = spots.filter(s => s.lat && s.lng)
-  const spotsNoGPS = spots.filter(s => !s.lat || !s.lng)
 
-  // Unique kabupaten list
-  const kabupatenList = ['Semua', ...Array.from(new Set(spots.map(s => s.kabupaten).filter(Boolean) as string[]))]
+  const kabList = [
+    'Semua',
+    ...Array.from(new Set(spots.map(s => s.kabupaten).filter(Boolean) as string[])),
+  ]
 
   const filtered = spotsWithGPS.filter(s => {
-    const matchSearch = s.nama.toLowerCase().includes(search.toLowerCase()) ||
-      (s.kabupaten?.toLowerCase().includes(search.toLowerCase()) ?? false)
-    const matchKec = activeKec === 'Semua' || s.kabupaten === activeKec
-    return matchSearch && matchKec
+    const q = search.toLowerCase()
+    const matchSearch =
+      s.nama.toLowerCase().includes(q) ||
+      (s.kabupaten?.toLowerCase().includes(q) ?? false)
+    const matchKab = activeKab === 'Semua' || s.kabupaten === activeKab
+    return matchSearch && matchKab
   })
 
-  // Build embed URL using first available spot or center of Ngada
-  const centerLat = selected?.lat ?? -8.559
-  const centerLng = selected?.lng ?? 121.089
-  const zoom = selected ? 14 : 10
+  // Init Leaflet map
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return
 
-  const embedUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyD-placeholder&q=${centerLat},${centerLng}&zoom=${zoom}`
+    import('leaflet').then(L => {
+      delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      })
 
-  // Fallback: use OpenStreetMap iframe (no API key needed)
-  const osmUrl = selected
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${centerLng - 0.05},${centerLat - 0.05},${centerLng + 0.05},${centerLat + 0.05}&layer=mapnik&marker=${centerLat},${centerLng}`
-    : `https://www.openstreetmap.org/export/embed.html?bbox=120.7,-8.9,121.4,-8.2&layer=mapnik`
+      const map = L.map(mapRef.current!, {
+        center: [-8.659, 121.0536],
+        zoom: 10,
+        zoomControl: true,
+      })
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+      }).addTo(map)
+
+      spotsWithGPS.forEach(spot => {
+        if (!spot.lat || !spot.lng) return
+
+        const markerHtml = `
+          <div style="
+            width:36px;height:36px;border-radius:50% 50% 50% 0;
+            background:#2d6a4f;border:3px solid white;
+            box-shadow:0 2px 8px rgba(0,0,0,0.35);
+            transform:rotate(-45deg);
+            cursor:pointer;
+          ">
+            <div style="
+              width:10px;height:10px;background:white;border-radius:50%;
+              position:absolute;top:50%;left:50%;
+              transform:translate(-50%,-50%) rotate(45deg);
+            "></div>
+          </div>`
+
+        const icon = L.divIcon({
+          html: markerHtml,
+          className: '',
+          iconSize: [36, 36],
+          iconAnchor: [18, 36],
+        })
+
+        L.marker([spot.lat, spot.lng], { icon })
+          .addTo(map)
+          .on('click', () => {
+            setSelected(spot)
+            setPhotoIdx(0)
+          })
+      })
+
+      mapInstanceRef.current = map
+    })
+
+    return () => {
+      mapInstanceRef.current?.remove()
+      mapInstanceRef.current = null
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Fly to selected
+  useEffect(() => {
+    if (!selected?.lat || !selected?.lng || !mapInstanceRef.current) return
+    mapInstanceRef.current.flyTo([selected.lat, selected.lng], 14, { duration: 1 })
+  }, [selected])
+
+  const photos = selected ? (selected.fotos.length > 0 ? selected.fotos : selected.foto ? [selected.foto] : []) : []
 
   return (
     <section className="py-8 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-          {/* ── LEFT PANEL: spot list ───────────────────────────────── */}
+          {/* ── LEFT: Spot list ── */}
           <div className="lg:col-span-2 space-y-4">
 
             {/* Search */}
@@ -77,49 +130,40 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Cari wisata atau kabupaten..."
-                className="input-field pl-10"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-ngada-200 text-sm focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-400 bg-white"
               />
             </div>
 
             {/* Kabupaten filter */}
             <div className="flex flex-wrap gap-2">
-              {kabupatenList.map(kec => (
+              {kabList.map(kab => (
                 <button
-                  key={kec}
-                  onClick={() => setActiveKec(kec)}
+                  key={kab}
+                  onClick={() => setActiveKab(kab)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    activeKec === kec
+                    activeKab === kab
                       ? 'bg-forest-700 text-white'
                       : 'bg-white border border-forest-200 text-forest-600 hover:bg-forest-50'
                   }`}
                 >
-                  {kec}
+                  {kab}
                 </button>
               ))}
             </div>
 
-            {/* Spots with GPS */}
+            {/* List */}
             <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
               <p className="text-xs font-medium text-forest-400 uppercase tracking-wider px-1">
                 {filtered.length} lokasi ditemukan
               </p>
 
-              {filtered.length === 0 && (
-                <div className="text-center py-10 text-forest-400 text-sm">
-                  Tidak ada hasil untuk pencarian ini
-                </div>
-              )}
-
-              {filtered.map((spot, i) => (
-                <motion.button
+              {filtered.map(spot => (
+                <button
                   key={spot.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  onClick={() => setSelected(selected?.id === spot.id ? null : spot)}
+                  onClick={() => { setSelected(spot); setPhotoIdx(0) }}
                   className={`w-full text-left p-4 rounded-xl border transition-all duration-200 ${
                     selected?.id === spot.id
-                      ? 'bg-forest-800 text-white border-forest-800 shadow-lg shadow-forest-800/20'
+                      ? 'bg-forest-800 text-white border-forest-800 shadow-lg'
                       : 'bg-white border-ngada-100 hover:border-forest-300 hover:shadow-sm'
                   }`}
                 >
@@ -136,57 +180,18 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
                       <p className={`text-xs mt-1 ${selected?.id === spot.id ? 'text-white/70' : 'text-forest-400'}`}>
                         {spot.kabupaten ?? '—'}
                       </p>
-                      {spot.lat && spot.lng && (
-                        <p className={`font-mono text-xs mt-0.5 ${selected?.id === spot.id ? 'text-ngada-200' : 'text-forest-300'}`}>
-                          {spot.lat.toFixed(4)}, {spot.lng.toFixed(4)}
-                        </p>
-                      )}
                     </div>
-                    <ChevronRight size={14} className={`flex-shrink-0 mt-1 transition-transform ${selected?.id === spot.id ? 'text-white rotate-90' : 'text-forest-300'}`} />
                   </div>
-
-                  {/* Action buttons when selected */}
-                  <AnimatePresence>
-                    {selected?.id === spot.id && spot.lat && spot.lng && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-3 pt-3 border-t border-white/20 flex gap-2"
-                      >
-                        <a
-                          href={getDirectionsUrl(spot.lat, spot.lng)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
-                          className="flex-1 flex items-center justify-center gap-1.5 bg-ngada-500 hover:bg-ngada-400 text-white text-xs font-medium py-2 rounded-lg transition-colors"
-                        >
-                          <Navigation size={12} />
-                          Petunjuk Arah
-                        </a>
-                        <a
-                          href={getGoogleMapsUrl(spot.lat, spot.lng)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
-                          className="flex-1 flex items-center justify-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium py-2 rounded-lg transition-colors"
-                        >
-                          <ExternalLink size={12} />
-                          Buka Maps
-                        </a>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.button>
+                </button>
               ))}
 
-              {/* Spots without GPS */}
-              {spotsNoGPS.length > 0 && activeKec === 'Semua' && !search && (
+              {/* No GPS spots */}
+              {spots.filter(s => !s.lat || !s.lng).length > 0 && activeKab === 'Semua' && !search && (
                 <div className="mt-4">
                   <p className="text-xs font-medium text-forest-300 uppercase tracking-wider px-1 mb-2">
                     Belum ada koordinat GPS
                   </p>
-                  {spotsNoGPS.map(spot => (
+                  {spots.filter(s => !s.lat || !s.lng).map(spot => (
                     <div key={spot.id} className="p-3 rounded-xl border border-dashed border-ngada-200 bg-ngada-50/50 mb-2">
                       <div className="flex items-center gap-2">
                         <MapPin size={12} className="text-ngada-300" />
@@ -199,148 +204,119 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
             </div>
           </div>
 
-          {/* ── RIGHT PANEL: map ────────────────────────────────────── */}
+          {/* ── RIGHT: Map ── */}
           <div className="lg:col-span-3">
             <div className="sticky top-24 space-y-4">
 
-              {/* Selected spot info card */}
-              <AnimatePresence mode="wait">
-                {selected && (
-                  <motion.div
-                    key={selected.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="bg-forest-800 text-white rounded-2xl overflow-hidden"
-                  >
-                    {/* Photo */}
-                    {(selected.fotos.length > 0 || selected.foto) && (
-                      <div className="relative h-44 bg-forest-900 overflow-hidden">
-                        <img
-                          src={selected.fotos[0] ?? selected.foto ?? ''}
-                          alt={selected.nama}
-                          className="w-full h-full object-cover opacity-90"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-forest-900/80 to-transparent" />
-                        {selected.fotos.length > 1 && (
-                          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                            {selected.fotos.length} foto
-                          </div>
-                        )}
-                      </div>
-                    )}
+              {/* Leaflet CSS */}
+              <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-                    <div className="p-5 flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-display text-xl">{selected.nama}</p>
-                        <p className="text-white/60 text-sm mt-1">{selected.alamat}</p>
-                        {selected.deskripsi && (
-                          <p className="text-white/50 text-xs mt-2 line-clamp-2 leading-relaxed">
-                            {selected.deskripsi}
-                          </p>
-                        )}
-                        {selected.lat && selected.lng && (
-                          <p className="font-mono text-xs text-ngada-300 mt-2">
-                            {selected.lat.toFixed(6)}, {selected.lng.toFixed(6)}
-                          </p>
-                        )}
-                      </div>
-                      {selected.lat && selected.lng && (
-                        <div className="flex flex-col gap-2 flex-shrink-0">
-                          <a
-                            href={getDirectionsUrl(selected.lat, selected.lng)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 bg-ngada-500 hover:bg-ngada-400 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
-                          >
-                            <Navigation size={13} />
-                            Petunjuk Arah
-                          </a>
-                          <a
-                            href={getGoogleMapsUrl(selected.lat, selected.lng)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
-                          >
-                            <ExternalLink size={13} />
-                            Buka Google Maps
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Map iframe (OpenStreetMap — no API key needed) */}
+              {/* Map container */}
               <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-ngada-100">
                 <div className="bg-forest-50 border-b border-ngada-100 px-4 py-2.5 flex items-center gap-2">
-                  <Map size={14} className="text-forest-500" />
-                  <span className="text-sm text-forest-600 font-medium">
-                    {selected ? `Menampilkan: ${selected.nama}` : 'Peta Kabupaten Ngada'}
-                  </span>
+                  <MapPin size={14} className="text-forest-500" />
+                  <span className="text-sm text-forest-600 font-medium">Peta Kabupaten Ngada</span>
                   {selected && (
                     <button
                       onClick={() => setSelected(null)}
-                      className="ml-auto text-xs text-forest-400 hover:text-forest-600"
+                      className="ml-auto text-xs text-forest-400 hover:text-forest-600 flex items-center gap-1"
                     >
-                      Reset peta
+                      <X size={12} /> Reset
                     </button>
                   )}
                 </div>
-                <iframe
-                  key={selected?.id ?? 'default'}
-                  src={osmUrl}
-                  width="100%"
-                  height="460"
-                  className="block"
-                  title="Peta Wisata Ngada"
-                  loading="lazy"
-                />
-                <div className="px-4 py-2.5 bg-ngada-50 border-t border-ngada-100 flex items-center justify-between">
-                  <p className="text-xs text-forest-400">
-                    © OpenStreetMap contributors
-                  </p>
-                  {selected?.lat && selected?.lng && (
-                    <a
-                      href={getGoogleMapsUrl(selected.lat, selected.lng)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-ngada-500 hover:text-ngada-700 flex items-center gap-1 font-medium"
-                    >
-                      Buka di Google Maps <ExternalLink size={10} />
-                    </a>
-                  )}
+                <div ref={mapRef} style={{ height: '460px', width: '100%' }} />
+                <div className="px-4 py-2 bg-ngada-50 border-t border-ngada-100">
+                  <p className="text-xs text-forest-400">© OpenStreetMap contributors</p>
                 </div>
               </div>
 
-              {/* All spots Google Maps links grid */}
-              {!selected && (
-                <div className="bg-white rounded-2xl p-5 border border-ngada-100 shadow-sm">
-                  <p className="font-display text-lg text-forest-900 mb-4">Buka Semua Lokasi</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {spotsWithGPS.slice(0, 6).map((spot, i) => (
+              {/* Popup card when marker clicked */}
+              {selected && (
+                <div className="bg-forest-800 text-white rounded-2xl overflow-hidden shadow-xl">
+
+                  {/* Photo */}
+                  {photos.length > 0 ? (
+                    <div className="relative h-48 bg-forest-900">
+                      <img
+                        key={photoIdx}
+                        src={photos[photoIdx]}
+                        alt={selected.nama}
+                        className="w-full h-full object-cover"
+                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-forest-900/60 to-transparent" />
+                      {photos.length > 1 && (
+                        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                          {photos.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setPhotoIdx(i)}
+                              className={`rounded-full transition-all ${
+                                i === photoIdx ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setSelected(null)}
+                        className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative h-20 bg-forest-900 flex items-center justify-center">
+                      <Camera size={24} className="text-white/20" />
+                      <button
+                        onClick={() => setSelected(null)}
+                        className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="p-5">
+                    <p className="font-display text-xl leading-tight">{selected.nama}</p>
+                    <p className="text-white/60 text-sm mt-1.5 flex items-start gap-1.5">
+                      <MapPin size={13} className="mt-0.5 flex-shrink-0 text-ngada-400" />
+                      {selected.alamat}
+                    </p>
+                    {selected.deskripsi && (
+                      <p className="text-white/50 text-xs mt-3 leading-relaxed line-clamp-3">
+                        {selected.deskripsi}
+                      </p>
+                    )}
+                    {selected.lat && selected.lng && (
+                      <p className="font-mono text-xs text-ngada-300 mt-3">
+                        {selected.lat.toFixed(6)}, {selected.lng.toFixed(6)}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  {selected.lat && selected.lng && (
+                    <div className="px-5 pb-5 flex gap-3">
                       <a
-                        key={spot.id}
-                        href={getDirectionsUrl(spot.lat!, spot.lng!)}
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${selected.lat},${selected.lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 p-2.5 rounded-xl bg-ngada-50 hover:bg-ngada-100 transition-colors group"
+                        className="flex-1 flex items-center justify-center gap-2 bg-ngada-500 hover:bg-ngada-400 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
                       >
-                        <div className={`w-6 h-6 rounded-full ${CATEGORY_COLORS[i % CATEGORY_COLORS.length]} flex items-center justify-center flex-shrink-0`}>
-                          <Navigation size={10} className="text-white" />
-                        </div>
-                        <span className="text-xs text-forest-700 font-medium line-clamp-1 group-hover:text-forest-900">
-                          {spot.nama}
-                        </span>
+                        <Navigation size={14} /> Petunjuk Arah
                       </a>
-                    ))}
-                  </div>
-                  {spotsWithGPS.length > 6 && (
-                    <p className="text-xs text-forest-400 text-center mt-3">
-                      +{spotsWithGPS.length - 6} lokasi lainnya — pilih dari daftar di kiri
-                    </p>
+                      <a
+                        href={`https://www.google.com/maps?q=${selected.lat},${selected.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+                      >
+                        <ExternalLink size={14} /> Google Maps
+                      </a>
+                    </div>
                   )}
                 </div>
               )}
