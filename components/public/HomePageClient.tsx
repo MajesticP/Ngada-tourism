@@ -67,7 +67,6 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   const layer3Y = useTransform(scrollYProgress, [0, 1], ['0%', '-20%'])
   const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-15%'])
 
-  const [isMobile, setIsMobile] = useState(false)
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
 
   const stats = [
@@ -77,14 +76,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
     { label: 'Pulau Eksotis', value: `${totalPulau}`, icon: <Waves size={22} /> },
   ]
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
-  // No category filter needed since DB has no category field — show all
+  // show all wisata
   useEffect(() => {
     setVisibleWisata(wisataData)
   }, [wisataData])
@@ -97,23 +89,23 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
 
         {/* Layer 1 — sky (slowest) */}
-        <motion.div className="absolute inset-0 z-0" style={isMobile ? {} : { y: layer1Y }}>
+        <motion.div className="absolute inset-0 z-0" style={{ y: layer1Y }}>
           <Image
             src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90"
             alt="Sky"
             fill
             priority
-            className="object-cover object-top"
+            className="object-cover object-top scale-110"
           />
         </motion.div>
 
         {/* Layer 2 — dark gradient overlay */}
-        <motion.div className="absolute inset-0 z-10" style={isMobile ? {} : { y: layer2Y }}>
+        <motion.div className="absolute inset-0 z-10" style={{ y: layer2Y }}>
           <div className="absolute inset-0 bg-gradient-to-b from-forest-950/40 via-transparent to-forest-950/90" />
         </motion.div>
 
         {/* Layer 3 — fog/mist strip (faster) */}
-        <motion.div className="absolute bottom-0 left-0 right-0 h-64 z-20" style={isMobile ? {} : { y: layer3Y }}>
+        <motion.div className="absolute bottom-0 left-0 right-0 h-64 z-20" style={{ y: layer3Y }}>
           <div className="w-full h-full bg-gradient-to-t from-forest-950/80 via-forest-950/30 to-transparent" />
         </motion.div>
 
@@ -139,7 +131,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
         {/* Hero content */}
         <motion.div
           className="relative z-30 text-center text-white px-6 max-w-5xl mx-auto"
-          style={isMobile ? { opacity: heroOpacity } : { y: contentY, opacity: heroOpacity }}
+          style={{ y: contentY, opacity: heroOpacity }}
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -318,9 +310,12 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
 
       {/* ── ABOUT BANNER ──────────────────────────────────────────────────── */}
       <section id="tentang" className="relative py-32 px-6 overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=1600&q=80)' }}
+        <motion.div
+          className="absolute inset-0 bg-cover bg-center scale-110"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=1600&q=80)',
+            y: useTransform(useScroll().scrollY, [0, 1000], ['0%', '20%']),
+          }}
         />
         <div className="absolute inset-0 bg-forest-950/75" />
         <div className="relative z-10 max-w-3xl mx-auto text-center text-white">
