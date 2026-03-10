@@ -71,7 +71,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     const wisata = await db.tempatWisata.update({
       where: { id_tempat_wisata: id },
-      data: { nama_tempat_wisata, alamat, informasi1, kategori: kategori ?? 'wisata_alam', id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi },
+      data: { nama_tempat_wisata, alamat, informasi1, id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi, ...({ kategori: kategori ?? 'wisata_alam' } as any) },
     })
 
     return NextResponse.json(wisata)

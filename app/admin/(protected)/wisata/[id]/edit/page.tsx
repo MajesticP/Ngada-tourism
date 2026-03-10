@@ -31,7 +31,7 @@ export default async function EditWisataPage({ params }: { params: Promise<{ id:
           nama_tempat_wisata:  wisata.nama_tempat_wisata,
           alamat:              wisata.alamat,
           informasi1:          wisata.informasi1,
-          kategori:            wisata.kategori,
+          kategori:            (wisata as any).kategori ?? 'wisata_alam',
           id_kecamatan:        wisata.id_kecamatan,
           galeri_nama:         wisata.galeri?.nama_galeri ?? '',
           galeri_gambar:       wisata.galeri?.gambar ?? '',

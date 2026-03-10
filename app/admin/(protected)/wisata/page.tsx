@@ -107,7 +107,7 @@ export default async function AdminWisataPage({ searchParams }: { searchParams: 
               </tr>
             ) : (
               wisata.map((w, i) => {
-                const kat = getKategori(w.kategori)
+                const kat = getKategori((w as any).kategori ?? 'wisata_alam')
                 return (
                   <tr key={w.id_tempat_wisata} className="hover:bg-ngada-50/50 transition-colors">
                     <td className="px-5 py-3.5 text-forest-400">{i + 1}</td>
