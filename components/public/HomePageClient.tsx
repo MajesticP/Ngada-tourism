@@ -84,14 +84,14 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   }, [wisataData])
 
   return (
-    <main className="min-h-screen overflow-hidden">
+    <main className="min-h-screen overflow-x-hidden">
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-forest-950">
 
         {/* Layer 1 — sky (slowest) */}
-        <motion.div className="absolute inset-0 z-0" style={{ y: layer1Y }}>
+        <motion.div className="absolute inset-0 z-0 parallax-layer" style={{ y: layer1Y }}>
           <Image
             src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90"
             alt="Sky"
@@ -102,12 +102,12 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
         </motion.div>
 
         {/* Layer 2 — dark gradient overlay */}
-        <motion.div className="absolute inset-0 z-10" style={{ y: layer2Y }}>
+        <motion.div className="absolute inset-0 z-10 parallax-layer" style={{ y: layer2Y }}>
           <div className="absolute inset-0 bg-gradient-to-b from-forest-950/40 via-transparent to-forest-950/90" />
         </motion.div>
 
         {/* Layer 3 — fog/mist strip (faster) */}
-        <motion.div className="absolute bottom-0 left-0 right-0 h-96 z-20" style={{ y: layer3Y }}>
+        <motion.div className="absolute bottom-0 left-0 right-0 h-96 z-20 parallax-layer" style={{ y: layer3Y }}>
           <div className="w-full h-full bg-gradient-to-t from-forest-950 via-forest-950/50 to-transparent" />
         </motion.div>
 

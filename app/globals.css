@@ -46,7 +46,14 @@
     @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium;
   }
 
-  /* Admin specific */
+  .section-title {
+    @apply font-display text-3xl md:text-4xl text-forest-900 font-bold;
+  }
+
+  /* Parallax GPU hint */
+  .parallax-layer {
+    will-change: transform;
+  }
   .admin-sidebar-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-forest-200 hover:bg-white/10 hover:text-white;
   }
