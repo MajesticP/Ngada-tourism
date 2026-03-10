@@ -5,32 +5,52 @@ import Navbar from '@/components/public/Navbar'
 import Footer from '@/components/public/Footer'
 import LokasiMap from '@/components/public/LokasiMap'
 
+async function getWisataWithLokasi() {
+  return db.tempatWisata.findMany({
+    where: {
+      lokasi: {
+        lat: { not: null },
+        lng: { not: null },
+      },
+    },
+    include: {
+      kabupaten: true,
+      lokasi: true,
+      galeri: true,
+    },
+    orderBy: { nama_tempat_wisata: 'asc' },
+  })
+}
+
 async function getAllWisata() {
   return db.tempatWisata.findMany({
     include: {
       kabupaten: true,
       lokasi: true,
       galeri: true,
-      fotos: { orderBy: { urutan: 'asc' } },
+      fotos: { orderBy: { urutan: 'asc' }, take: 1 },
     },
     orderBy: { nama_tempat_wisata: 'asc' },
   })
 }
 
 export default async function LokasiPage() {
-  const allWisata = await getAllWisata()
+  const [wisataWithLokasi, allWisata] = await Promise.all([
+    getWisataWithLokasi(),
+    getAllWisata(),
+  ])
 
   const spots = allWisata.map(w => ({
     id: w.id_tempat_wisata,
     nama: w.nama_tempat_wisata,
     alamat: w.alamat,
-    deskripsi: w.informasi1 ?? '',
     kabupaten: w.kabupaten?.nama_kabupaten ?? null,
     lat: w.lokasi?.lat ? Number(w.lokasi.lat) : null,
     lng: w.lokasi?.lng ? Number(w.lokasi.lng) : null,
     namaLokasi: w.lokasi?.nama_lokasi ?? null,
-    foto: w.galeri?.gambar ?? null,
-    fotos: w.fotos?.map(f => f.url) ?? [],
+    // First foto from the fotos relation, fallback to galeri image
+    foto: (w.fotos?.[0]?.url ?? w.galeri?.gambar ?? null),
+    deskripsi: w.informasi1 ?? null,
   }))
 
   return (
@@ -47,11 +67,12 @@ export default async function LokasiPage() {
           <p className="text-ngada-300 uppercase tracking-widest text-sm mb-3">Temukan Lokasinya</p>
           <h1 className="font-display text-4xl md:text-6xl mb-4">Peta Wisata Ngada</h1>
           <p className="text-white/70 text-lg max-w-xl mx-auto">
-            {spots.filter(s => s.lat && s.lng).length} destinasi — klik pin di peta untuk foto, alamat &amp; deskripsi
+            {spots.filter(s => s.lat && s.lng).length} destinasi dengan koordinat GPS — klik untuk langsung buka Google Maps
           </p>
         </div>
       </section>
 
+      {/* Map + List */}
       <LokasiMap spots={spots} />
 
       <Footer />
