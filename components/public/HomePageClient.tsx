@@ -60,12 +60,14 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
 }) {
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const { scrollY } = useScroll()
 
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
   const layer1Y = useTransform(scrollYProgress, [0, 1], ['0%', '60%'])
   const layer2Y = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
   const layer3Y = useTransform(scrollYProgress, [0, 1], ['0%', '-20%'])
   const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-15%'])
+  const aboutY = useTransform(scrollY, [0, 1000], ['0%', '20%'])
 
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
 
@@ -314,7 +316,7 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
           className="absolute inset-0 bg-cover bg-center scale-110"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=1600&q=80)',
-            y: useTransform(useScroll().scrollY, [0, 1000], ['0%', '20%']),
+            y: aboutY,
           }}
         />
         <div className="absolute inset-0 bg-forest-950/75" />
