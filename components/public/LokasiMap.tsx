@@ -188,12 +188,6 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
                       <div className="flex items-center gap-2">
                         <MapPin size={12} className="text-ngada-300" />
                         <p className="text-sm text-forest-500">{spot.nama}</p>
-                        <Link
-                          href={`/admin/lokasi`}
-                          className="ml-auto text-xs text-ngada-400 hover:text-ngada-600"
-                        >
-                          + Tambah
-                        </Link>
                       </div>
                     </div>
                   ))}
