@@ -59,7 +59,7 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
   // Fallback: use OpenStreetMap iframe (no API key needed)
   const osmUrl = selected
     ? `https://www.openstreetmap.org/export/embed.html?bbox=${centerLng - 0.05},${centerLat - 0.05},${centerLng + 0.05},${centerLat + 0.05}&layer=mapnik&marker=${centerLat},${centerLng}`
-    : `https://www.openstreetmap.org/export/embed.html?bbox=120.7,−8.9,121.4,−8.2&layer=mapnik`
+    : `https://www.openstreetmap.org/export/embed.html?bbox=120.7,-8.9,121.4,-8.2&layer=mapnik`
 
   return (
     <section className="py-8 px-6">
