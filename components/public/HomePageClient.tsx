@@ -67,14 +67,14 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Hero height = 100vh, parallax values derived from raw scrollY
+  // Hero parallax — px based, relative to viewport height
   const heroH = typeof window !== 'undefined' ? window.innerHeight : 800
-  const progress = Math.min(scrollY / heroH, 1) // 0 → 1 as hero scrolls out
+  const progress = Math.min(scrollY / heroH, 1)
 
-  const layer1Y = `${progress * 60}%`
-  const layer2Y = `${progress * 30}%`
-  const layer3Y = `${progress * -20}%`
-  const contentY = `${progress * -15}%`
+  const layer1Y = `${progress * heroH * 0.5}px`
+  const layer2Y = `${progress * heroH * 0.25}px`
+  const layer3Y = `${progress * heroH * -0.15}px`
+  const contentY = `${progress * heroH * -0.12}px`
   const heroOpacity = Math.max(1 - progress / 0.7, 0)
 
   const [visibleWisata, setVisibleWisata] = useState(wisataData)
@@ -319,11 +319,14 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
       </section>
 
       {/* ── ABOUT BANNER ──────────────────────────────────────────────────── */}
-      <section id="tentang" className="relative py-32 px-6 overflow-hidden">
+      <section id="tentang" className="relative py-32 px-6">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=1600&q=80)',
+            backgroundAttachment: 'fixed',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}
         />
         <div className="absolute inset-0 bg-forest-950/75" />
