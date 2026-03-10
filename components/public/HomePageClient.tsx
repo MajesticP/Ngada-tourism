@@ -56,7 +56,7 @@ const stats = [
   { label: 'Pulau Eksotis', value: '17', icon: <Waves size={22} /> },
 ]
 
-export default function HomePageClient({ wisataData }: { wisataData: WisataItem[] }) {
+export default function HomePageClient({ wisataData, kecamatanList }: { wisataData: WisataItem[], kecamatanList: { id_kecamatan: number; nama_kecamatan: string }[] }) {
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
 
@@ -354,19 +354,19 @@ export default function HomePageClient({ wisataData }: { wisataData: WisataItem[
           </motion.div>
 
           <div className="flex flex-wrap gap-3 justify-center">
-            {["Bajawa","Riung","Golewa","Soa","Aimere","Boawae","Jerebu'u","Riung Barat","Bajawa Utara","Golewa Barat","Golewa Selatan"].map((kec, i) => (
+            {kecamatanList.map((kec, i) => (
               <motion.div
-                key={kec}
+                key={kec.id_kecamatan}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
               >
                 <Link
-                  href={`/wisata?kecamatan=${encodeURIComponent(kec)}`}
+                  href={`/wisata?kecamatan=${encodeURIComponent(kec.nama_kecamatan)}`}
                   className="px-5 py-2.5 rounded-full border-2 border-forest-200 text-forest-700 hover:border-forest-600 hover:bg-forest-600 hover:text-white transition-all duration-300 text-sm font-medium block"
                 >
-                  {kec}
+                  {kec.nama_kecamatan}
                 </Link>
               </motion.div>
             ))}
