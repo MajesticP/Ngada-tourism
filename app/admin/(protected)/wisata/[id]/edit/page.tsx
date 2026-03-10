@@ -8,12 +8,12 @@ import PhotoUploader from '@/components/admin/PhotoUploader'
 export default async function EditWisataPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = await params
   const id = parseInt(idStr)
-  const [wisata, kecamatan] = await Promise.all([
+  const [wisata, kabupaten] = await Promise.all([
     db.tempatWisata.findUnique({
       where: { id_tempat_wisata: id },
       include: { lokasi: true, galeri: true, fotos: { orderBy: { urutan: 'asc' } } },
     }),
-    db.kecamatan.findMany({ orderBy: { nama_kecamatan: 'asc' } }),
+    db.kabupaten.findMany({ orderBy: { nama_kabupaten: 'asc' } }),
   ])
 
   if (!wisata) notFound()
@@ -25,14 +25,14 @@ export default async function EditWisataPage({ params }: { params: Promise<{ id:
         <p className="text-forest-500 text-sm mt-1">{wisata.nama_tempat_wisata}</p>
       </div>
       <WisataForm
-        kecamatan={kecamatan}
+        kabupaten={kabupaten}
         defaultValues={{
           id:                  wisata.id_tempat_wisata,
           nama_tempat_wisata:  wisata.nama_tempat_wisata,
           alamat:              wisata.alamat,
           informasi1:          wisata.informasi1,
           kategori:            (wisata as any).kategori ?? 'wisata_alam',
-          id_kecamatan:        wisata.id_kecamatan,
+          id_kabupaten:        wisata.id_kabupaten,
           galeri_nama:         wisata.galeri?.nama_galeri ?? '',
           galeri_gambar:       wisata.galeri?.gambar ?? '',
           galeri_keterangan:   wisata.galeri?.keterangan ?? '',

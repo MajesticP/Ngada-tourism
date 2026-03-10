@@ -7,7 +7,7 @@ export async function GET(_: NextRequest, { params }: Params) {
   const { id } = await params
   const wisata = await db.tempatWisata.findUnique({
     where: { id_tempat_wisata: parseInt(id) },
-    include: { kecamatan: true, lokasi: true, galeri: true },
+    include: { kabupaten: true, lokasi: true, galeri: true },
   })
   if (!wisata) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(wisata)
@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const id = parseInt(paramId)
     const body = await req.json()
     const {
-      nama_tempat_wisata, alamat, informasi1, kategori, id_kecamatan,
+      nama_tempat_wisata, alamat, informasi1, kategori, id_kabupaten,
       galeri_nama, galeri_gambar, galeri_keterangan,
       lat, lng,
     } = body
@@ -71,7 +71,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     const wisata = await db.tempatWisata.update({
       where: { id_tempat_wisata: id },
-      data: { nama_tempat_wisata, alamat, informasi1, id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi, ...({ kategori: kategori ?? 'wisata_alam' } as any) },
+      data: { nama_tempat_wisata, alamat, informasi1, id_kabupaten: id_kabupaten ?? null, id_galeri, id_lokasi, ...({ kategori: kategori ?? 'wisata_alam' } as any) },
     })
 
     return NextResponse.json(wisata)

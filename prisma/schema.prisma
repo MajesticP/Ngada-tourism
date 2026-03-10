@@ -19,12 +19,12 @@ model Admin {
   @@map("admin")
 }
 
-model Kecamatan {
-  id_kecamatan   Int            @id @default(autoincrement())
-  nama_kecamatan String
+model Kabupaten {
+  id_kabupaten   Int            @id @default(autoincrement())
+  nama_kabupaten String
   tempat_wisata  TempatWisata[]
 
-  @@map("kecamatan")
+  @@map("kabupaten")
 }
 
 model Lokasi {
@@ -53,13 +53,13 @@ model TempatWisata {
   alamat             String    @db.Text
   informasi1         String    @db.Text
   kategori           String    @default("wisata_alam")
-  id_kecamatan       Int?
+  id_kabupaten       Int?
   id_lokasi          Int?
   id_galeri          Int?
   created_at         DateTime  @default(now())
   updated_at         DateTime  @updatedAt
 
-  kecamatan  Kecamatan? @relation(fields: [id_kecamatan], references: [id_kecamatan])
+  kabupaten  Kabupaten? @relation(fields: [id_kabupaten], references: [id_kabupaten])
   lokasi     Lokasi?    @relation(fields: [id_lokasi], references: [id_lokasi])
   galeri     Galeri?    @relation(fields: [id_galeri], references: [id_galeri])
   fotos      Foto[]

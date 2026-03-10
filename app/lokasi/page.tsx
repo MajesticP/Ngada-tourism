@@ -14,7 +14,7 @@ async function getWisataWithLokasi() {
       },
     },
     include: {
-      kecamatan: true,
+      kabupaten: true,
       lokasi: true,
       galeri: true,
     },
@@ -24,7 +24,7 @@ async function getWisataWithLokasi() {
 
 async function getAllWisata() {
   return db.tempatWisata.findMany({
-    include: { kecamatan: true, lokasi: true, galeri: true },
+    include: { kabupaten: true, lokasi: true, galeri: true },
     orderBy: { nama_tempat_wisata: 'asc' },
   })
 }
@@ -39,7 +39,7 @@ export default async function LokasiPage() {
     id: w.id_tempat_wisata,
     nama: w.nama_tempat_wisata,
     alamat: w.alamat,
-    kecamatan: w.kecamatan?.nama_kecamatan ?? null,
+    kabupaten: w.kabupaten?.nama_kabupaten ?? null,
     lat: w.lokasi?.lat ? Number(w.lokasi.lat) : null,
     lng: w.lokasi?.lng ? Number(w.lokasi.lng) : null,
     namaLokasi: w.lokasi?.nama_lokasi ?? null,

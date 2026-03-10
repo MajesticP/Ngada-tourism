@@ -9,7 +9,7 @@ type Spot = {
   id: number
   nama: string
   alamat: string
-  kecamatan: string | null
+  kabupaten: string | null
   lat: number | null
   lng: number | null
   namaLokasi: string | null
@@ -36,13 +36,13 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
   const spotsWithGPS = spots.filter(s => s.lat && s.lng)
   const spotsNoGPS = spots.filter(s => !s.lat || !s.lng)
 
-  // Unique kecamatan list
-  const kecamatanList = ['Semua', ...Array.from(new Set(spots.map(s => s.kecamatan).filter(Boolean) as string[]))]
+  // Unique kabupaten list
+  const kabupatenList = ['Semua', ...Array.from(new Set(spots.map(s => s.kabupaten).filter(Boolean) as string[]))]
 
   const filtered = spotsWithGPS.filter(s => {
     const matchSearch = s.nama.toLowerCase().includes(search.toLowerCase()) ||
-      (s.kecamatan?.toLowerCase().includes(search.toLowerCase()) ?? false)
-    const matchKec = activeKec === 'Semua' || s.kecamatan === activeKec
+      (s.kabupaten?.toLowerCase().includes(search.toLowerCase()) ?? false)
+    const matchKec = activeKec === 'Semua' || s.kabupaten === activeKec
     return matchSearch && matchKec
   })
 
@@ -73,14 +73,14 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Cari wisata atau kecamatan..."
+                placeholder="Cari wisata atau kabupaten..."
                 className="input-field pl-10"
               />
             </div>
 
-            {/* Kecamatan filter */}
+            {/* Kabupaten filter */}
             <div className="flex flex-wrap gap-2">
-              {kecamatanList.map(kec => (
+              {kabupatenList.map(kec => (
                 <button
                   key={kec}
                   onClick={() => setActiveKec(kec)}
@@ -131,7 +131,7 @@ export default function LokasiMap({ spots }: { spots: Spot[] }) {
                         {spot.nama}
                       </p>
                       <p className={`text-xs mt-1 ${selected?.id === spot.id ? 'text-white/70' : 'text-forest-400'}`}>
-                        {spot.kecamatan ?? '—'}
+                        {spot.kabupaten ?? '—'}
                       </p>
                       {spot.lat && spot.lng && (
                         <p className={`font-mono text-xs mt-0.5 ${selected?.id === spot.id ? 'text-ngada-200' : 'text-forest-300'}`}>

@@ -28,7 +28,7 @@ async function getWisata(search?: string, kategori?: string) {
       ...(search ? { nama_tempat_wisata: { contains: search } } : {}),
       ...(kategori ? { kategori } : {}),
     },
-    include: { kecamatan: true, lokasi: true, galeri: true },
+    include: { kabupaten: true, lokasi: true, galeri: true },
     orderBy: { id_tempat_wisata: 'asc' },
   })
 }
@@ -96,7 +96,7 @@ export default async function AdminWisataPage({ searchParams }: { searchParams: 
               <th className="px-5 py-3.5 font-medium w-8">No</th>
               <th className="px-5 py-3.5 font-medium">Nama</th>
               <th className="px-5 py-3.5 font-medium">Kategori</th>
-              <th className="px-5 py-3.5 font-medium hidden md:table-cell">Kecamatan</th>
+              <th className="px-5 py-3.5 font-medium hidden md:table-cell">Kabupaten</th>
               <th className="px-5 py-3.5 font-medium text-center">Aksi</th>
             </tr>
           </thead>
@@ -123,10 +123,10 @@ export default async function AdminWisataPage({ searchParams }: { searchParams: 
                       </span>
                     </td>
                     <td className="px-5 py-3.5 hidden md:table-cell">
-                      {w.kecamatan ? (
+                      {w.kabupaten ? (
                         <span className="badge bg-forest-100 text-forest-700">
                           <MapPin size={10} />
-                          {w.kecamatan.nama_kecamatan}
+                          {w.kabupaten.nama_kabupaten}
                         </span>
                       ) : (
                         <span className="text-forest-300">—</span>

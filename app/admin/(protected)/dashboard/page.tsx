@@ -6,47 +6,47 @@ import { Globe, Image, Map, MapPin, Users, TrendingUp, Clock, Plus, Inbox } from
 import Link from 'next/link'
 
 async function getDashboardStats() {
-  const [totalWisata, totalGaleri, totalKecamatan, totalLokasi, totalAdmin, unreadPesan, recentWisata, wisataPerKecamatan] =
+  const [totalWisata, totalGaleri, totalKabupaten, totalLokasi, totalAdmin, unreadPesan, recentWisata, wisataPerKabupaten] =
     await Promise.all([
       db.tempatWisata.count(),
       db.galeri.count(),
-      db.kecamatan.count(),
+      db.kabupaten.count(),
       db.lokasi.count(),
       db.admin.count(),
       db.pesan.count({ where: { sudah_baca: false } }),
       db.tempatWisata.findMany({
         take: 5,
         orderBy: { created_at: 'desc' },
-        include: { kecamatan: true, galeri: true },
+        include: { kabupaten: true, galeri: true },
       }),
-      db.kecamatan.findMany({
+      db.kabupaten.findMany({
         include: { _count: { select: { tempat_wisata: true } } },
-        orderBy: { nama_kecamatan: 'asc' },
+        orderBy: { nama_kabupaten: 'asc' },
       }),
     ])
 
-  return { totalWisata, totalGaleri, totalKecamatan, totalLokasi, totalAdmin, unreadPesan, recentWisata, wisataPerKecamatan }
+  return { totalWisata, totalGaleri, totalKabupaten, totalLokasi, totalAdmin, unreadPesan, recentWisata, wisataPerKabupaten }
 }
 
 export default async function DashboardPage() {
-  const { totalWisata, totalGaleri, totalKecamatan, totalLokasi, totalAdmin, unreadPesan, recentWisata, wisataPerKecamatan } =
+  const { totalWisata, totalGaleri, totalKabupaten, totalLokasi, totalAdmin, unreadPesan, recentWisata, wisataPerKabupaten } =
     await getDashboardStats()
 
   const stats = [
     { label: 'Tempat Wisata', value: totalWisata, icon: Globe, color: 'text-forest-600', bg: 'bg-forest-50', border: 'border-forest-200', href: '/admin/wisata' },
     { label: 'Galeri Foto', value: totalGaleri, icon: Image, color: 'text-ngada-600', bg: 'bg-ngada-50', border: 'border-ngada-200', href: '/admin/wisata' },
-    { label: 'Kecamatan', value: totalKecamatan, icon: Map, color: 'text-terra-600', bg: 'bg-terra-50', border: 'border-terra-200', href: '/admin/kecamatan' },
+    { label: 'Kabupaten', value: totalKabupaten, icon: Map, color: 'text-terra-600', bg: 'bg-terra-50', border: 'border-terra-200', href: '/admin/kabupaten' },
     { label: 'Titik Lokasi', value: totalLokasi, icon: MapPin, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200', href: '/admin/wisata' },
     { label: 'Pesan Baru', value: unreadPesan, icon: Inbox, color: 'text-terra-600', bg: 'bg-terra-50', border: unreadPesan > 0 ? 'border-terra-400' : 'border-terra-200', href: '/admin/pesan' },
   ]
 
-  const chartData = wisataPerKecamatan
+  const chartData = wisataPerKabupaten
     .filter(k => k._count.tempat_wisata > 0)
-    .map(k => ({ name: k.nama_kecamatan, value: k._count.tempat_wisata }))
+    .map(k => ({ name: k.nama_kabupaten, value: k._count.tempat_wisata }))
 
   const quickActions = [
     { href: '/admin/wisata/new', label: 'Tambah Destinasi', icon: Plus, color: 'bg-forest-600 hover:bg-forest-700' },
-    { href: '/admin/kecamatan', label: 'Kelola Kecamatan', icon: Plus, color: 'bg-ngada-500 hover:bg-ngada-600' },
+    { href: '/admin/kabupaten', label: 'Kelola Kabupaten', icon: Plus, color: 'bg-ngada-500 hover:bg-ngada-600' },
     { href: '/admin/pesan', label: 'Lihat Pesan', icon: Plus, color: 'bg-terra-500 hover:bg-terra-600' },
     { href: '/admin/admins', label: 'Data Admin', icon: Plus, color: 'bg-purple-600 hover:bg-purple-700' },
   ]
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-ngada-100">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp size={18} className="text-ngada-500" />
-            <h2 className="font-display text-lg text-forest-900">Wisata per Kecamatan</h2>
+            <h2 className="font-display text-lg text-forest-900">Wisata per Kabupaten</h2>
           </div>
           <DashboardCharts data={chartData} />
         </div>
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-forest-900 text-sm truncate">{w.nama_tempat_wisata}</p>
-                  <p className="text-xs text-forest-400">{w.kecamatan?.nama_kecamatan ?? '—'}</p>
+                  <p className="text-xs text-forest-400">{w.kabupaten?.nama_kabupaten ?? '—'}</p>
                 </div>
                 <div className="text-xs text-forest-400">
                   {new Date(w.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}

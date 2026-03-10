@@ -27,7 +27,7 @@ type WisataItem = {
   alamat: string
   informasi1: string
   kategori: string
-  kecamatan: { nama_kecamatan: string } | null
+  kabupaten: { nama_kabupaten: string } | null
   galeri: { gambar: string | null; nama_galeri: string } | null
 }
 
@@ -51,9 +51,9 @@ const IMAGE_FALLBACKS = [
   'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&q=80',
 ]
 
-export default function HomePageClient({ wisataData, kecamatanList, totalWisata, totalKampung, totalPulau }: {
+export default function HomePageClient({ wisataData, kabupatenList, totalWisata, totalKampung, totalPulau }: {
   wisataData: WisataItem[]
-  kecamatanList: { id_kecamatan: number; nama_kecamatan: string }[]
+  kabupatenList: { id_kabupaten: number; nama_kabupaten: string }[]
   totalWisata: number
   totalKampung: number
   totalPulau: number
@@ -72,7 +72,7 @@ export default function HomePageClient({ wisataData, kecamatanList, totalWisata,
 
   const stats = [
     { label: 'Tempat Wisata', value: `${totalWisata}+`, icon: <Camera size={22} /> },
-    { label: 'Kecamatan', value: `${kecamatanList.length}`, icon: <MapPin size={22} /> },
+    { label: 'Kabupaten', value: `${kabupatenList.length}`, icon: <MapPin size={22} /> },
     { label: 'Kampung Adat', value: `${totalKampung}`, icon: <Users size={22} /> },
     { label: 'Pulau Eksotis', value: `${totalPulau}`, icon: <Waves size={22} /> },
   ]
@@ -283,10 +283,10 @@ export default function HomePageClient({ wisataData, kecamatanList, totalWisata,
                             <span className={`badge text-white ${kat.color}`}>
                               {kat.label}
                             </span>
-                            {w.kecamatan && (
+                            {w.kabupaten && (
                               <span className="badge text-white bg-black/40 backdrop-blur-sm">
                                 <MapPin size={10} />
-                                {w.kecamatan.nama_kecamatan}
+                                {w.kabupaten.nama_kabupaten}
                               </span>
                             )}
                           </div>
@@ -357,24 +357,24 @@ export default function HomePageClient({ wisataData, kecamatanList, totalWisata,
             whileInView="visible"
             viewport={{ once: true }}
           >
-            <motion.h2 variants={fadeUp} className="section-title mb-3">Jelajahi per Kecamatan</motion.h2>
-            <motion.p variants={fadeUp} className="text-forest-600">{kecamatanList.length} kecamatan, masing-masing dengan keunikannya sendiri</motion.p>
+            <motion.h2 variants={fadeUp} className="section-title mb-3">Jelajahi per Kabupaten</motion.h2>
+            <motion.p variants={fadeUp} className="text-forest-600">{kabupatenList.length} kabupaten, masing-masing dengan keunikannya sendiri</motion.p>
           </motion.div>
 
           <div className="flex flex-wrap gap-3 justify-center">
-            {kecamatanList.map((kec, i) => (
+            {kabupatenList.map((kec, i) => (
               <motion.div
-                key={kec.id_kecamatan}
+                key={kec.id_kabupaten}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
               >
                 <Link
-                  href={`/wisata?kecamatan=${encodeURIComponent(kec.nama_kecamatan)}`}
+                  href={`/wisata?kabupaten=${encodeURIComponent(kec.nama_kabupaten)}`}
                   className="px-5 py-2.5 rounded-full border-2 border-forest-200 text-forest-700 hover:border-forest-600 hover:bg-forest-600 hover:text-white transition-all duration-300 text-sm font-medium block"
                 >
-                  {kec.nama_kecamatan}
+                  {kec.nama_kabupaten}
                 </Link>
               </motion.div>
             ))}

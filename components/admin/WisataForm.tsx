@@ -30,7 +30,7 @@ type FormData = {
   alamat: string
   informasi1: string
   kategori: string
-  id_kecamatan: number | null
+  id_kabupaten: number | null
   galeri_nama: string
   galeri_gambar: string
   galeri_keterangan: string
@@ -39,14 +39,14 @@ type FormData = {
 }
 
 type Props = {
-  kecamatan: { id_kecamatan: number; nama_kecamatan: string }[]
+  kabupaten: { id_kabupaten: number; nama_kabupaten: string }[]
   defaultValues?: {
     id?: number
     nama_tempat_wisata?: string
     alamat?: string
     informasi1?: string
     kategori?: string
-    id_kecamatan?: number | null
+    id_kabupaten?: number | null
     galeri_nama?: string
     galeri_gambar?: string
     galeri_keterangan?: string
@@ -56,7 +56,7 @@ type Props = {
   children?: React.ReactNode
 }
 
-export default function WisataForm({ kecamatan, defaultValues, children }: Props) {
+export default function WisataForm({ kabupaten, defaultValues, children }: Props) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -71,7 +71,7 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
     alamat:             defaultValues?.alamat ?? '',
     informasi1:         defaultValues?.informasi1 ?? '',
     kategori:           defaultValues?.kategori ?? 'wisata_alam',
-    id_kecamatan:       defaultValues?.id_kecamatan ?? null,
+    id_kabupaten:       defaultValues?.id_kabupaten ?? null,
     galeri_nama:        defaultValues?.galeri_nama ?? '',
     galeri_gambar:      defaultValues?.galeri_gambar ?? '',
     galeri_keterangan:  defaultValues?.galeri_keterangan ?? '',
@@ -84,7 +84,7 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
       const val = e.target.value
       setForm(prev => ({
         ...prev,
-        [key]: key === 'id_kecamatan' ? (val === '' ? null : Number(val)) : val,
+        [key]: key === 'id_kabupaten' ? (val === '' ? null : Number(val)) : val,
       }))
     }
 
@@ -142,7 +142,7 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
         alamat:             form.alamat,
         informasi1:         form.informasi1,
         kategori:           form.kategori,
-        id_kecamatan:       form.id_kecamatan,
+        id_kabupaten:       form.id_kabupaten,
         galeri_nama:        form.galeri_nama  || null,
         galeri_gambar:      form.galeri_gambar || null,
         galeri_keterangan:  form.galeri_keterangan || null,
@@ -189,7 +189,7 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-forest-700">Alamat *</label>
           <textarea value={form.alamat} onChange={set('alamat')} required rows={2}
-            className="input-field resize-none" placeholder="cth. Desa Bena, Kecamatan Golewa, Kabupaten Ngada" />
+            className="input-field resize-none" placeholder="cth. Desa Bena, Kabupaten Golewa, Kabupaten Ngada" />
         </div>
 
         <div className="space-y-1.5">
@@ -199,11 +199,11 @@ export default function WisataForm({ kecamatan, defaultValues, children }: Props
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-forest-700">Kecamatan</label>
-          <select value={form.id_kecamatan ?? ''} onChange={set('id_kecamatan')} className="input-field">
-            <option value="">— Pilih Kecamatan —</option>
-            {kecamatan.map(k => (
-              <option key={k.id_kecamatan} value={k.id_kecamatan}>{k.nama_kecamatan}</option>
+          <label className="block text-sm font-medium text-forest-700">Kabupaten</label>
+          <select value={form.id_kabupaten ?? ''} onChange={set('id_kabupaten')} className="input-field">
+            <option value="">— Pilih Kabupaten —</option>
+            {kabupaten.map(k => (
+              <option key={k.id_kabupaten} value={k.id_kabupaten}>{k.nama_kabupaten}</option>
             ))}
           </select>
         </div>

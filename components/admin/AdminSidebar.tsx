@@ -8,7 +8,7 @@ import { LayoutDashboard, MapPin, Map, Users, Globe, ChevronRight, Inbox, Menu, 
 const navItems = [
   { href: '/admin/dashboard',  label: 'Dashboard',     icon: LayoutDashboard },
   { href: '/admin/wisata',     label: 'Tempat Wisata', icon: Globe },
-  { href: '/admin/kecamatan',  label: 'Kecamatan',     icon: Map },
+  { href: '/admin/kabupaten',  label: 'Kabupaten',     icon: Map },
   { href: '/admin/pesan',      label: 'Pesan Masuk',   icon: Inbox, badge: true },
   { href: '/admin/admins',     label: 'Data Admin',    icon: Users },
 ]

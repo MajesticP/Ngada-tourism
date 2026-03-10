@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
             <span className="text-ngada-300 italic">Ngada</span>
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-sm">
-            Panel administrasi untuk mengelola data tempat wisata, galeri foto, kecamatan, dan lokasi GPS.
+            Panel administrasi untuk mengelola data tempat wisata, galeri foto, kabupaten, dan lokasi GPS.
           </p>
         </motion.div>
       </div>

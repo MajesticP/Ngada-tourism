@@ -11,7 +11,7 @@ type Wisata = {
   alamat: string
   informasi1: string
   kategori?: string
-  kecamatan: { nama_kecamatan: string } | null
+  kabupaten: { nama_kabupaten: string } | null
   lokasi: { nama_lokasi: string; lat: number | null; lng: number | null } | null
   galeri: { gambar: string | null; nama_galeri: string } | null
 }
@@ -76,10 +76,10 @@ export default function WisataGrid({ wisata }: { wisata: Wisata[] }) {
                   <span className={`badge text-white ${kat.color}`}>
                     {kat.label}
                   </span>
-                  {w.kecamatan && (
+                  {w.kabupaten && (
                     <span className="badge text-white bg-black/40 backdrop-blur-sm">
                       <MapPin size={10} />
-                      {w.kecamatan.nama_kecamatan}
+                      {w.kabupaten.nama_kabupaten}
                     </span>
                   )}
                 </div>

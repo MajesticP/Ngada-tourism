@@ -12,15 +12,15 @@ import { MapPin, ArrowLeft, Map } from 'lucide-react'
 async function getWisata(id: string) {
   return db.tempatWisata.findUnique({
     where: { id_tempat_wisata: parseInt(id) },
-    include: { kecamatan: true, lokasi: true, galeri: true, fotos: { orderBy: { urutan: 'asc' } } },
+    include: { kabupaten: true, lokasi: true, galeri: true, fotos: { orderBy: { urutan: 'asc' } } },
   })
 }
 
-async function getRelated(kecamatanId: number | null, currentId: number) {
-  if (!kecamatanId) return []
+async function getRelated(kabupatenId: number | null, currentId: number) {
+  if (!kabupatenId) return []
   return db.tempatWisata.findMany({
-    where: { id_kecamatan: kecamatanId, id_tempat_wisata: { not: currentId } },
-    include: { galeri: true, kecamatan: true, fotos: { orderBy: { urutan: 'asc' }, take: 1 } },
+    where: { id_kabupaten: kabupatenId, id_tempat_wisata: { not: currentId } },
+    include: { galeri: true, kabupaten: true, fotos: { orderBy: { urutan: 'asc' }, take: 1 } },
     take: 3,
   })
 }
@@ -36,7 +36,7 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
   const wisata = await getWisata(id)
   if (!wisata) notFound()
 
-  const related = await getRelated(wisata.id_kecamatan, wisata.id_tempat_wisata)
+  const related = await getRelated(wisata.id_kabupaten, wisata.id_tempat_wisata)
 
   // Build photo list: fotos table first, fallback to galeri, fallback to unsplash
   const photos = wisata.fotos.length > 0
@@ -68,7 +68,7 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
             </h1>
             <div className="flex items-center gap-2 text-white/70 text-sm mt-2">
               <MapPin size={13} />
-              <span>{wisata.kecamatan?.nama_kecamatan} — {wisata.alamat}</span>
+              <span>{wisata.kabupaten?.nama_kabupaten} — {wisata.alamat}</span>
             </div>
           </div>
         </div>
@@ -105,8 +105,8 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
                 <h3 className="font-display text-lg mb-4 text-ngada-200">Informasi</h3>
                 <dl className="space-y-3 text-sm">
                   <div>
-                    <dt className="text-white/50">Kecamatan</dt>
-                    <dd className="text-white font-medium">{wisata.kecamatan?.nama_kecamatan ?? '—'}</dd>
+                    <dt className="text-white/50">Kabupaten</dt>
+                    <dd className="text-white font-medium">{wisata.kabupaten?.nama_kabupaten ?? '—'}</dd>
                   </div>
                   {hasMap && (
                     <div>
@@ -138,7 +138,7 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
           {related.length > 0 && (
             <div className="mt-14">
               <h2 className="font-display text-2xl text-forest-900 mb-6">
-                Wisata Lain di {wisata.kecamatan?.nama_kecamatan}
+                Wisata Lain di {wisata.kabupaten?.nama_kabupaten}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {related.map((r, i) => {

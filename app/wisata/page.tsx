@@ -7,16 +7,16 @@ import Navbar from '@/components/public/Navbar'
 import Footer from '@/components/public/Footer'
 import { Search, Filter } from 'lucide-react'
 
-async function getWisata(search?: string, kecamatan?: string) {
+async function getWisata(search?: string, kabupaten?: string) {
   return db.tempatWisata.findMany({
     where: {
       AND: [
         search ? { nama_tempat_wisata: { contains: search } } : {},
-        kecamatan ? { kecamatan: { nama_kecamatan: { contains: kecamatan } } } : {},
+        kabupaten ? { kabupaten: { nama_kabupaten: { contains: kabupaten } } } : {},
       ],
     },
     include: {
-      kecamatan: true,
+      kabupaten: true,
       lokasi: true,
       galeri: true,
     },
@@ -24,19 +24,19 @@ async function getWisata(search?: string, kecamatan?: string) {
   })
 }
 
-async function getKecamatan() {
-  return db.kecamatan.findMany({ orderBy: { nama_kecamatan: 'asc' } })
+async function getKabupaten() {
+  return db.kabupaten.findMany({ orderBy: { nama_kabupaten: 'asc' } })
 }
 
 export default async function WisataPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; kecamatan?: string }>
+  searchParams: Promise<{ search?: string; kabupaten?: string }>
 }) {
-  const { search, kecamatan } = await searchParams
-  const [wisata, kecamatanList] = await Promise.all([
-    getWisata(search, kecamatan),
-    getKecamatan(),
+  const { search, kabupaten } = await searchParams
+  const [wisata, kabupatenList] = await Promise.all([
+    getWisata(search, kabupaten),
+    getKabupaten(),
   ])
 
   return (
@@ -75,14 +75,14 @@ export default async function WisataPage({
             <div className="relative">
               <Filter size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-forest-400" />
               <select
-                name="kecamatan"
-                defaultValue={kecamatan}
+                name="kabupaten"
+                defaultValue={kabupaten}
                 className="input-field pl-10 pr-8 appearance-none min-w-[160px]"
               >
-                <option value="">Semua Kecamatan</option>
-                {kecamatanList.map(k => (
-                  <option key={k.id_kecamatan} value={k.nama_kecamatan}>
-                    {k.nama_kecamatan}
+                <option value="">Semua Kabupaten</option>
+                {kabupatenList.map(k => (
+                  <option key={k.id_kabupaten} value={k.nama_kabupaten}>
+                    {k.nama_kabupaten}
                   </option>
                 ))}
               </select>

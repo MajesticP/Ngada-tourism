@@ -12,10 +12,10 @@ CREATE TABLE IF NOT EXISTS admin (
   password  VARCHAR(255) NOT NULL  -- bcrypt hashed
 );
 
--- Kecamatan (sub-districts of Ngada)
-CREATE TABLE IF NOT EXISTS kecamatan (
-  id_kecamatan   INT AUTO_INCREMENT PRIMARY KEY,
-  nama_kecamatan VARCHAR(150) NOT NULL
+-- Kabupaten (sub-districts of Ngada)
+CREATE TABLE IF NOT EXISTS kabupaten (
+  id_kabupaten   INT AUTO_INCREMENT PRIMARY KEY,
+  nama_kabupaten VARCHAR(150) NOT NULL
 );
 
 -- Lokasi (GPS coordinates for tourist spots)
@@ -40,13 +40,13 @@ CREATE TABLE IF NOT EXISTS tempat_wisata (
   nama_tempat_wisata VARCHAR(200) NOT NULL,
   alamat             TEXT NOT NULL,
   informasi1         TEXT NOT NULL,
-  id_kecamatan       INT NULL,
+  id_kabupaten       INT NULL,
   id_lokasi          INT NULL,
   id_galeri          INT NULL,
   created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-  FOREIGN KEY (id_kecamatan) REFERENCES kecamatan(id_kecamatan) ON DELETE SET NULL,
+  FOREIGN KEY (id_kabupaten) REFERENCES kabupaten(id_kabupaten) ON DELETE SET NULL,
   FOREIGN KEY (id_lokasi)    REFERENCES lokasi(id_lokasi) ON DELETE SET NULL,
   FOREIGN KEY (id_galeri)    REFERENCES galeri(id_galeri) ON DELETE SET NULL
 );
@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS tempat_wisata (
 INSERT INTO admin (username, password) VALUES
 ('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
--- Kecamatan (11 sub-districts of Ngada Regency)
-INSERT INTO kecamatan (nama_kecamatan) VALUES
+-- Kabupaten (11 sub-districts of Ngada Regency)
+INSERT INTO kabupaten (nama_kabupaten) VALUES
 ('Aimere'),('Bajawa'),('Bajawa Utara'),('Boawae'),
 ('Golewa'),('Golewa Barat'),('Golewa Selatan'),
 ('Jerebu''u'),('Riung'),('Riung Barat'),('Soa');
@@ -88,16 +88,16 @@ INSERT INTO galeri (nama_galeri, gambar, keterangan) VALUES
 ('Pantai Lekoena', 'Pantai Lekoena.jpg', 'Pantai dengan pasir putih dan air jernih');
 
 -- Sample Tempat Wisata
-INSERT INTO tempat_wisata (nama_tempat_wisata, alamat, informasi1, id_kecamatan, id_lokasi, id_galeri) VALUES
-('Kampung Adat Bena', 'Desa Bena, Kecamatan Golewa, Kabupaten Ngada', 'Kampung Adat Bena adalah salah satu kampung megalitik terpenting di Indonesia. Terletak di lereng Gunung Inerie yang menjulang 2.245 meter, kampung ini memiliki lebih dari 40 rumah adat yang masih dihuni oleh keturunan langsung pendirinya. Batu-batu megalitik yang tersusun rapi di tengah kampung menjadi saksi bisu kehidupan leluhur suku Ngada selama berabad-abad.', 5, 3, 1),
-('Taman Wisata 17 Pulau Riung', 'Kecamatan Riung, Kabupaten Ngada', 'Taman Wisata Alam Riung terdiri dari 17 pulau kecil yang tersebar di Teluk Riung. Kawasan ini merupakan habitat alami komodo, berbagai spesies burung, dan kekayaan terumbu karang yang memukau. Snorkeling dan diving di sini menawarkan pengalaman bawah laut yang tak terlupakan di antara ikan-ikan berwarna cerah.', 9, 2, 2),
-('Wolobobo', 'Desa Wolobobo, Kecamatan Bajawa', 'Wolobobo adalah sebuah bukit yang menawarkan pemandangan 360 derajat kota Bajawa dan alam sekitarnya. Dari puncaknya, pengunjung dapat menyaksikan matahari terbit yang spektakuler dengan latar belakang Gunung Inerie. Jalur trekking menuju puncak melalui hutan pinus yang sejuk menjadikan perjalanan ini tak kalah menarik.', 2, 1, 3),
-('Air Panas Mengeruda', 'Desa Mengeruda, Kecamatan Soa, Kabupaten Ngada', 'Air Panas Mengeruda adalah kolam rendam alami yang terbentuk dari aktivitas vulkanik. Airnya mengandung belerang yang dipercaya bermanfaat untuk kesehatan kulit. Dikelilingi oleh sawah hijau dan pemandangan gunung, tempat ini menawarkan pengalaman berendam yang menyegarkan dan terapeutik.', 11, 6, 4),
-('Kampung Adat Tololela', 'Desa Tololela, Kecamatan Golewa', 'Kampung Tololela merupakan salah satu kampung adat yang masih mempertahankan tradisi dan arsitektur asli suku Ngada. Rumah adat berbentuk kerucut dengan ornamen khas Ngada menjadi daya tarik utama bagi para wisatawan budaya.', 5, 3, 5),
-('Bukit Avatar', 'Kecamatan Bajawa, Kabupaten Ngada', 'Dijuluki Bukit Avatar karena keindahannya yang menyerupai pemandangan dalam film Avatar. Hamparan bukit hijau berlapis-lapis dengan kabut tipis di pagi hari menciptakan atmosfer magis yang memukau setiap pengunjung.', 2, 1, 6),
-('Air Panas Boba', 'Desa Soa, Kecamatan Soa', 'Sumber air panas alami Boba terletak di area yang masih asri dan belum banyak dikunjungi wisatawan. Air panasnya mengalir dari celah bebatuan vulkanik, menciptakan kolam-kolam alami yang sempurna untuk berendam.', 11, 6, 7),
-('Kampung Adat Belaraghi', 'Desa Belaraghi, Kecamatan Bajawa Utara', 'Kampung Belaraghi menyimpan kekayaan tradisi dan seni budaya Ngada yang autentik. Pengunjung dapat menyaksikan langsung ritual adat, tari-tarian tradisional, dan kerajinan tangan khas daerah.', 3, 1, 8),
-('Pantai Lekoena', 'Kecamatan Riung, Kabupaten Ngada', 'Pantai Lekoena menawarkan keindahan pasir putih dan air laut biru jernih yang memesona. Lokasinya yang tersembunyi membuat pantai ini masih terjaga kealamiannya, menjadikannya surga tersembunyi bagi para pelancong.', 9, 2, 9);
+INSERT INTO tempat_wisata (nama_tempat_wisata, alamat, informasi1, id_kabupaten, id_lokasi, id_galeri) VALUES
+('Kampung Adat Bena', 'Desa Bena, Kabupaten Golewa, Kabupaten Ngada', 'Kampung Adat Bena adalah salah satu kampung megalitik terpenting di Indonesia. Terletak di lereng Gunung Inerie yang menjulang 2.245 meter, kampung ini memiliki lebih dari 40 rumah adat yang masih dihuni oleh keturunan langsung pendirinya. Batu-batu megalitik yang tersusun rapi di tengah kampung menjadi saksi bisu kehidupan leluhur suku Ngada selama berabad-abad.', 5, 3, 1),
+('Taman Wisata 17 Pulau Riung', 'Kabupaten Riung, Kabupaten Ngada', 'Taman Wisata Alam Riung terdiri dari 17 pulau kecil yang tersebar di Teluk Riung. Kawasan ini merupakan habitat alami komodo, berbagai spesies burung, dan kekayaan terumbu karang yang memukau. Snorkeling dan diving di sini menawarkan pengalaman bawah laut yang tak terlupakan di antara ikan-ikan berwarna cerah.', 9, 2, 2),
+('Wolobobo', 'Desa Wolobobo, Kabupaten Bajawa', 'Wolobobo adalah sebuah bukit yang menawarkan pemandangan 360 derajat kota Bajawa dan alam sekitarnya. Dari puncaknya, pengunjung dapat menyaksikan matahari terbit yang spektakuler dengan latar belakang Gunung Inerie. Jalur trekking menuju puncak melalui hutan pinus yang sejuk menjadikan perjalanan ini tak kalah menarik.', 2, 1, 3),
+('Air Panas Mengeruda', 'Desa Mengeruda, Kabupaten Soa, Kabupaten Ngada', 'Air Panas Mengeruda adalah kolam rendam alami yang terbentuk dari aktivitas vulkanik. Airnya mengandung belerang yang dipercaya bermanfaat untuk kesehatan kulit. Dikelilingi oleh sawah hijau dan pemandangan gunung, tempat ini menawarkan pengalaman berendam yang menyegarkan dan terapeutik.', 11, 6, 4),
+('Kampung Adat Tololela', 'Desa Tololela, Kabupaten Golewa', 'Kampung Tololela merupakan salah satu kampung adat yang masih mempertahankan tradisi dan arsitektur asli suku Ngada. Rumah adat berbentuk kerucut dengan ornamen khas Ngada menjadi daya tarik utama bagi para wisatawan budaya.', 5, 3, 5),
+('Bukit Avatar', 'Kabupaten Bajawa, Kabupaten Ngada', 'Dijuluki Bukit Avatar karena keindahannya yang menyerupai pemandangan dalam film Avatar. Hamparan bukit hijau berlapis-lapis dengan kabut tipis di pagi hari menciptakan atmosfer magis yang memukau setiap pengunjung.', 2, 1, 6),
+('Air Panas Boba', 'Desa Soa, Kabupaten Soa', 'Sumber air panas alami Boba terletak di area yang masih asri dan belum banyak dikunjungi wisatawan. Air panasnya mengalir dari celah bebatuan vulkanik, menciptakan kolam-kolam alami yang sempurna untuk berendam.', 11, 6, 7),
+('Kampung Adat Belaraghi', 'Desa Belaraghi, Kabupaten Bajawa Utara', 'Kampung Belaraghi menyimpan kekayaan tradisi dan seni budaya Ngada yang autentik. Pengunjung dapat menyaksikan langsung ritual adat, tari-tarian tradisional, dan kerajinan tangan khas daerah.', 3, 1, 8),
+('Pantai Lekoena', 'Kabupaten Riung, Kabupaten Ngada', 'Pantai Lekoena menawarkan keindahan pasir putih dan air laut biru jernih yang memesona. Lokasinya yang tersembunyi membuat pantai ini masih terjaga kealamiannya, menjadikannya surga tersembunyi bagi para pelancong.', 9, 2, 9);
 
 -- Tabel pesan dari halaman kontak
 CREATE TABLE IF NOT EXISTS pesan (
@@ -115,3 +115,11 @@ CREATE TABLE IF NOT EXISTS pesan (
 ALTER TABLE tempat_wisata
   ADD COLUMN IF NOT EXISTS kategori VARCHAR(50) NOT NULL DEFAULT 'wisata_alam'
   AFTER informasi1;
+
+-- Migration: rename kecamatan table and columns to kabupaten
+RENAME TABLE kecamatan TO kabupaten;
+ALTER TABLE kabupaten CHANGE id_kecamatan id_kabupaten INT NOT NULL AUTO_INCREMENT;
+ALTER TABLE kabupaten CHANGE nama_kecamatan nama_kabupaten VARCHAR(150) NOT NULL;
+ALTER TABLE tempat_wisata CHANGE id_kecamatan id_kabupaten INT NULL;
+ALTER TABLE tempat_wisata DROP FOREIGN KEY tempat_wisata_ibfk_1;
+ALTER TABLE tempat_wisata ADD CONSTRAINT tempat_wisata_kabupaten_fk FOREIGN KEY (id_kabupaten) REFERENCES kabupaten(id_kabupaten) ON DELETE SET NULL;

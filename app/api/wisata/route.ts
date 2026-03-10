@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get('search') ?? undefined
   const data = await db.tempatWisata.findMany({
     where: search ? { nama_tempat_wisata: { contains: search } } : {},
-    include: { kecamatan: true, lokasi: true, galeri: true },
+    include: { kabupaten: true, lokasi: true, galeri: true },
     orderBy: { id_tempat_wisata: 'asc' },
   })
   return NextResponse.json(data)
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const {
-      nama_tempat_wisata, alamat, informasi1, kategori, id_kecamatan,
+      nama_tempat_wisata, alamat, informasi1, kategori, id_kabupaten,
       galeri_nama, galeri_gambar, galeri_keterangan,
       lat, lng,
     } = body
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     const wisata = await db.tempatWisata.create({
-      data: { nama_tempat_wisata, alamat, informasi1, id_kecamatan: id_kecamatan ?? null, id_galeri, id_lokasi, ...({ kategori: kategori ?? 'wisata_alam' } as any) },
+      data: { nama_tempat_wisata, alamat, informasi1, id_kabupaten: id_kabupaten ?? null, id_galeri, id_lokasi, ...({ kategori: kategori ?? 'wisata_alam' } as any) },
     })
 
     return NextResponse.json(wisata, { status: 201 })
