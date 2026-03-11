@@ -45,14 +45,7 @@ A full-stack tourism information web app for **Kabupaten Ngada, Nusa Tenggara Ti
 
 ## 🚀 Getting Started
 
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/your-username/ngada-tourism.git
-cd ngada-tourism
-```
-
-### 2. Install dependencies
+### 1. Install dependencies
 
 ```bash
 npm install
