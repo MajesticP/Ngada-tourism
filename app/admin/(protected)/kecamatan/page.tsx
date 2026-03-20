@@ -1,14 +1,13 @@
 export const dynamic = 'force-dynamic'
 
 import { db } from '@/lib/db'
-import Link from 'next/link'
 import { getSession } from '@/lib/auth'
-import KecamatanManager from '@/components/admin/KecamatanManager'
+import KabupatenManager from '@/components/admin/KabupatenManager'
 
 export default async function AdminKecamatanPage() {
-  await getSession() // pastikan user sudah login
-  const kecamatan = await db.kecamatan.findMany({
-    orderBy: { nama_kecamatan: 'asc' },
+  await getSession()
+  const kabupaten = await db.kabupaten.findMany({
+    orderBy: { nama_kabupaten: 'asc' },
     include: { _count: { select: { tempat_wisata: true } } },
   })
 
@@ -16,12 +15,12 @@ export default async function AdminKecamatanPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl text-forest-900">Data Kecamatan</h1>
-        <p className="text-forest-500 text-sm mt-1">{kecamatan.length} kecamatan terdaftar di Kabupaten Ngada</p>
+        <p className="text-forest-500 text-sm mt-1">{kabupaten.length} kecamatan terdaftar di Kabupaten Ngada</p>
       </div>
-      <KecamatanManager
-        initialData={kecamatan.map(k => ({
-          id: k.id_kecamatan,
-          nama: k.nama_kecamatan,
+      <KabupatenManager
+        initialData={kabupaten.map(k => ({
+          id: k.id_kabupaten,
+          nama: k.nama_kabupaten,
           countWisata: k._count.tempat_wisata,
         }))}
       />
