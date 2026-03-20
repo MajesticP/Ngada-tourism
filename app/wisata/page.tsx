@@ -59,7 +59,7 @@ export default async function WisataPage({
       </section>
 
       {/* Search & Filter */}
-      <section className="sticky top-16 z-40 bg-white border-b border-ngada-100 shadow-sm">
+      <section className="bg-white border-b border-ngada-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row gap-3">
           <form className="flex-1 flex gap-3">
             <div className="relative flex-1">

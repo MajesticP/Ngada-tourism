@@ -53,6 +53,13 @@ model TempatWisata {
   alamat             String    @db.Text
   informasi1         String    @db.Text
   kategori           String    @default("wisata_alam")
+  // Fasilitas fields
+  akses_jalan        String?
+  parkir             String?
+  toilet             String?
+  jarak_atm          String?
+  jarak_rs           String?
+  spot_foto          String?
   id_kabupaten       Int?
   id_lokasi          Int?
   id_galeri          Int?

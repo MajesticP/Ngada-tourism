@@ -31,13 +31,19 @@ export default async function EditWisataPage({ params }: { params: Promise<{ id:
           nama_tempat_wisata:  wisata.nama_tempat_wisata,
           alamat:              wisata.alamat,
           informasi1:          wisata.informasi1,
-          kategori:            (wisata as any).kategori ?? 'wisata_alam',
+          kategori:            wisata.kategori ?? 'wisata_alam',
           id_kabupaten:        wisata.id_kabupaten,
           galeri_nama:         wisata.galeri?.nama_galeri ?? '',
           galeri_gambar:       wisata.galeri?.gambar ?? '',
           galeri_keterangan:   wisata.galeri?.keterangan ?? '',
           lat:                 wisata.lokasi?.lat ?? null,
           lng:                 wisata.lokasi?.lng ?? null,
+          akses_jalan:         wisata.akses_jalan,
+          parkir:              wisata.parkir,
+          toilet:              wisata.toilet,
+          jarak_atm:           wisata.jarak_atm,
+          jarak_rs:            wisata.jarak_rs,
+          spot_foto:           wisata.spot_foto,
         }}
       >
         {/* Gallery section */}

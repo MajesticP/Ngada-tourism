@@ -1,9 +1,11 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
-const SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET ?? 'ngada-secret-flores-2024'
-)
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET environment variable is not set')
+}
+
+const SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
 
 export async function createToken(payload: { id: string; username: string }) {
   return new SignJWT(payload)

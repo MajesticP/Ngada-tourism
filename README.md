@@ -1,49 +1,10 @@
-# 🌴 Ngada Tourism — Sistem Informasi Wisata Ngada, NTT
+# 🌴 Ngada Tourism
 
-A full-stack tourism information web app for **Kabupaten Ngada, Nusa Tenggara Timur**, built with Next.js 15, Prisma ORM, MySQL (Aiven), and Cloudinary.
-
----
-
-## ✨ Features
-
-- **Public site** — browse destinations, view photos, filter by kabupaten, interactive Leaflet map of NTT with clickable pins
-- **Admin panel** — manage wisata, kabupaten, galleries, messages, and admins
-- **Leaflet map** — shows all GPS-tagged destinations across NTT with popups containing photo, address, and description
-- **Image uploads** — via Cloudinary
-- **Authentication** — JWT-based admin login with bcrypt password hashing
-- **Dashboard** — charts and stats via Recharts
+Sistem Informasi Wisata Kabupaten Ngada, Nusa Tenggara Timur.
 
 ---
 
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| Animation | Framer Motion |
-| ORM | Prisma 5 |
-| Database | MySQL (Aiven Cloud) |
-| Image Storage | Cloudinary |
-| Auth | JWT via `jose` + bcryptjs |
-| Map | Leaflet.js (CDN) |
-| Charts | Recharts |
-| Icons | Lucide React |
-| Deployment | Vercel |
-
----
-
-## ⚙️ Requirements
-
-- **Node.js** v18.18 or higher
-- **npm** v9 or higher
-- A **MySQL** database (Aiven free tier works)
-- A **Cloudinary** account (free tier works)
-
----
-
-## 🚀 Getting Started
+## 🚀 Setup
 
 ### 1. Install dependencies
 
@@ -51,117 +12,73 @@ A full-stack tourism information web app for **Kabupaten Ngada, Nusa Tenggara Ti
 npm install
 ```
 
-> This also runs `prisma generate` automatically via the `postinstall` script.
-
-### 3. Set up environment variables
-
-Copy the example file and fill in your values:
+### 2. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+Edit `.env` and fill in:
 
-```env
-DATABASE_URL="mysql://user:password@host:port/dbname?ssl-mode=REQUIRED"
-NEXTAUTH_SECRET="your-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
-CLOUDINARY_CLOUD_NAME="your_cloud_name"
-CLOUDINARY_API_KEY="your_api_key"
-CLOUDINARY_API_SECRET="your_api_secret"
-```
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | MySQL connection string |
+| `NEXTAUTH_SECRET` | JWT secret — generate with `openssl rand -base64 32` |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 
-### 4. Push database schema
+### 3. Setup database
 
 ```bash
+# Push schema to your MySQL database
 npm run db:push
 ```
 
-### 5. Run the development server
+### 4. Run
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Buka [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 📁 Project Structure
+## 🔐 Admin Panel
 
-```
-ngada-tourism/
-├── app/
-│   ├── (public pages)
-│   │   ├── page.tsx          # Home
-│   │   ├── wisata/           # Destination list & detail
-│   │   ├── lokasi/           # Interactive map page
-│   │   └── contact/          # Contact form
-│   ├── admin/
-│   │   ├── login/            # Admin login
-│   │   └── (protected)/      # Dashboard, wisata CRUD, messages
-│   └── api/                  # REST API routes
-├── components/
-│   ├── public/               # Public-facing components
-│   └── admin/                # Admin panel components
-├── lib/
-│   ├── db.ts                 # Prisma client singleton
-│   └── auth.ts               # Auth utilities
-├── prisma/
-│   └── schema.prisma         # Database schema
-└── public/                   # Static assets
+Buka [http://localhost:3000/admin/login](http://localhost:3000/admin/login).
+
+Insert admin user ke database:
+
+```sql
+INSERT INTO admin (username, password)
+VALUES ('admin', '$2b$10$...bcrypt_hashed_password...');
 ```
 
----
-
-## 🗄️ Database Models
-
-| Model | Description |
-|---|---|
-| `TempatWisata` | Tourism destination |
-| `Kabupaten` | District / Kabupaten |
-| `Lokasi` | GPS coordinates + location name |
-| `Galeri` | Gallery entry (cover image) |
-| `Foto` | Individual photos per destination |
-| `Pesan` | Contact messages |
-| `Admin` | Admin users |
+Atau gunakan script seed jika tersedia: `npm run db:seed`
 
 ---
 
-## 📜 Available Scripts
+## 📁 Struktur Proyek
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run db:push` | Push schema to database |
-| `npm run db:generate` | Regenerate Prisma client |
-| `npm run db:studio` | Open Prisma Studio (DB GUI) |
-
----
-
-## 🌐 Deployment (Vercel)
-
-1. Push your code to GitHub
-2. Import the repo on [vercel.com](https://vercel.com)
-3. Add all environment variables from your `.env` in the Vercel dashboard
-4. Change `NEXTAUTH_URL` to your Vercel deployment URL (e.g. `https://ngada-tourism.vercel.app`)
-5. Click **Deploy**
-
----
-
-## 🔐 Default Admin
-
-After seeding or first setup, log in at `/admin/login`. Create your first admin by running:
-
-```bash
-node fix-password.js
 ```
-
----
-
-## 📄 License
-
-This project was built for academic/government purposes for Kabupaten Ngada, NTT, Indonesia.
+app/
+  api/          — API routes (wisata, auth, upload, pesan, foto, kabupaten)
+  admin/        — Admin panel (protected by JWT middleware)
+  wisata/       — Halaman publik daftar & detail wisata
+  lokasi/       — Peta lokasi wisata
+  fasilitas/    — Info fasilitas
+  contact/      — Halaman kontak
+components/
+  public/
+    home/       — Sub-komponen HomePageClient (Cursor, Cube3D, FlipCard, dll)
+  admin/
+    wisata-form/ — Sub-komponen WisataForm (InfoDasar, Foto, Lokasi, Fasilitas)
+lib/
+  auth.ts       — JWT helper (jose)
+  db.ts         — Prisma singleton
+  validations.ts — Zod schemas
+prisma/
+  schema.prisma — Database schema (source of truth)
+```

@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Navbar from '@/components/public/Navbar'
 import Footer from '@/components/public/Footer'
 import PhotoCarousel from '@/components/public/PhotoCarousel'
-import { MapPin, ArrowLeft, Map } from 'lucide-react'
+import { MapPin, ArrowLeft, Map, Car, ParkingCircle, Toilet, Landmark, Phone, Camera } from 'lucide-react'
 
 async function getWisata(id: string) {
   return db.tempatWisata.findUnique({
@@ -98,6 +98,81 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
                   </a>
                 )}
               </div>
+
+              {/* ── Fasilitas ── */}
+              {(wisata.akses_jalan || wisata.parkir || wisata.toilet || wisata.jarak_atm || wisata.jarak_rs || wisata.spot_foto) && (
+                <div className="bg-white rounded-2xl p-8 shadow-sm">
+                  <h3 className="font-display text-xl text-forest-900 mb-5">Fasilitas & Aksesibilitas</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {wisata.akses_jalan && (
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-ngada-50 border border-ngada-100">
+                        <div className="w-8 h-8 rounded-lg bg-forest-800 flex items-center justify-center flex-shrink-0">
+                          <Car size={14} className="text-ngada-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-forest-400 font-medium">Akses Jalan</p>
+                          <p className="text-sm text-forest-800 font-semibold mt-0.5">{wisata.akses_jalan}</p>
+                        </div>
+                      </div>
+                    )}
+                    {wisata.parkir && (
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-ngada-50 border border-ngada-100">
+                        <div className="w-8 h-8 rounded-lg bg-forest-800 flex items-center justify-center flex-shrink-0">
+                          <ParkingCircle size={14} className="text-ngada-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-forest-400 font-medium">Parkir</p>
+                          <p className="text-sm text-forest-800 font-semibold mt-0.5">{wisata.parkir}</p>
+                        </div>
+                      </div>
+                    )}
+                    {wisata.toilet && (
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-ngada-50 border border-ngada-100">
+                        <div className="w-8 h-8 rounded-lg bg-forest-800 flex items-center justify-center flex-shrink-0">
+                          <Toilet size={14} className="text-ngada-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-forest-400 font-medium">Toilet</p>
+                          <p className="text-sm text-forest-800 font-semibold mt-0.5">{wisata.toilet}</p>
+                        </div>
+                      </div>
+                    )}
+                    {wisata.jarak_atm && (
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-ngada-50 border border-ngada-100">
+                        <div className="w-8 h-8 rounded-lg bg-forest-800 flex items-center justify-center flex-shrink-0">
+                          <Landmark size={14} className="text-ngada-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-forest-400 font-medium">Jarak ATM</p>
+                          <p className="text-sm text-forest-800 font-semibold mt-0.5">{wisata.jarak_atm}</p>
+                        </div>
+                      </div>
+                    )}
+                    {wisata.jarak_rs && (
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-ngada-50 border border-ngada-100 col-span-2 sm:col-span-1">
+                        <div className="w-8 h-8 rounded-lg bg-forest-800 flex items-center justify-center flex-shrink-0">
+                          <Phone size={14} className="text-ngada-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-forest-400 font-medium">RS / Puskesmas</p>
+                          <p className="text-sm text-forest-800 font-semibold mt-0.5">{wisata.jarak_rs}</p>
+                        </div>
+                      </div>
+                    )}
+                    {wisata.spot_foto && (
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-ngada-50 border border-ngada-100">
+                        <div className="w-8 h-8 rounded-lg bg-forest-800 flex items-center justify-center flex-shrink-0">
+                          <Camera size={14} className="text-ngada-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-forest-400 font-medium">Spot Foto</p>
+                          <p className="text-sm text-forest-800 font-semibold mt-0.5">{wisata.spot_foto}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-5">

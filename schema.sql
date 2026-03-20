@@ -1,5 +1,7 @@
 -- ============================================================
 -- Database Schema: Ngada Tourism (Next.js Rebuild)
+-- Run this on a FRESH database only.
+-- For existing DBs, see schema.migrations.sql
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS ngada_tourism CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -40,6 +42,13 @@ CREATE TABLE IF NOT EXISTS tempat_wisata (
   nama_tempat_wisata VARCHAR(200) NOT NULL,
   alamat             TEXT NOT NULL,
   informasi1         TEXT NOT NULL,
+  kategori           VARCHAR(50) NOT NULL DEFAULT 'wisata_alam',
+  akses_jalan        VARCHAR(100) NULL,
+  parkir             VARCHAR(100) NULL,
+  toilet             VARCHAR(100) NULL,
+  jarak_atm          VARCHAR(100) NULL,
+  jarak_rs           VARCHAR(150) NULL,
+  spot_foto          VARCHAR(100) NULL,
   id_kabupaten       INT NULL,
   id_lokasi          INT NULL,
   id_galeri          INT NULL,
@@ -51,12 +60,33 @@ CREATE TABLE IF NOT EXISTS tempat_wisata (
   FOREIGN KEY (id_galeri)    REFERENCES galeri(id_galeri) ON DELETE SET NULL
 );
 
+-- Foto (multiple photos per tempat wisata)
+CREATE TABLE IF NOT EXISTS foto (
+  id_foto          INT  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id_tempat_wisata INT  NOT NULL,
+  url              TEXT NOT NULL,
+  urutan           INT  NOT NULL DEFAULT 0,
+
+  FOREIGN KEY (id_tempat_wisata) REFERENCES tempat_wisata(id_tempat_wisata) ON DELETE CASCADE
+);
+
+-- Contact messages
+CREATE TABLE IF NOT EXISTS pesan (
+  id_pesan   INT          NOT NULL AUTO_INCREMENT,
+  nama       VARCHAR(255) NOT NULL,
+  email      VARCHAR(255) NOT NULL,
+  subjek     VARCHAR(255)          DEFAULT NULL,
+  pesan      TEXT         NOT NULL,
+  sudah_baca TINYINT(1)   NOT NULL DEFAULT 0,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_pesan)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ============================================================
 -- Seed Data
 -- ============================================================
 
--- Default admin (password: admin123 — change in production!)
--- Password hash for 'admin123' using bcrypt
+-- Default admin (password: admin123 — CHANGE THIS IN PRODUCTION)
 INSERT INTO admin (username, password) VALUES
 ('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
@@ -88,38 +118,25 @@ INSERT INTO galeri (nama_galeri, gambar, keterangan) VALUES
 ('Pantai Lekoena', 'Pantai Lekoena.jpg', 'Pantai dengan pasir putih dan air jernih');
 
 -- Sample Tempat Wisata
-INSERT INTO tempat_wisata (nama_tempat_wisata, alamat, informasi1, id_kabupaten, id_lokasi, id_galeri) VALUES
-('Kampung Adat Bena', 'Desa Bena, Kabupaten Golewa, Kabupaten Ngada', 'Kampung Adat Bena adalah salah satu kampung megalitik terpenting di Indonesia. Terletak di lereng Gunung Inerie yang menjulang 2.245 meter, kampung ini memiliki lebih dari 40 rumah adat yang masih dihuni oleh keturunan langsung pendirinya. Batu-batu megalitik yang tersusun rapi di tengah kampung menjadi saksi bisu kehidupan leluhur suku Ngada selama berabad-abad.', 5, 3, 1),
-('Taman Wisata 17 Pulau Riung', 'Kabupaten Riung, Kabupaten Ngada', 'Taman Wisata Alam Riung terdiri dari 17 pulau kecil yang tersebar di Teluk Riung. Kawasan ini merupakan habitat alami komodo, berbagai spesies burung, dan kekayaan terumbu karang yang memukau. Snorkeling dan diving di sini menawarkan pengalaman bawah laut yang tak terlupakan di antara ikan-ikan berwarna cerah.', 9, 2, 2),
-('Wolobobo', 'Desa Wolobobo, Kabupaten Bajawa', 'Wolobobo adalah sebuah bukit yang menawarkan pemandangan 360 derajat kota Bajawa dan alam sekitarnya. Dari puncaknya, pengunjung dapat menyaksikan matahari terbit yang spektakuler dengan latar belakang Gunung Inerie. Jalur trekking menuju puncak melalui hutan pinus yang sejuk menjadikan perjalanan ini tak kalah menarik.', 2, 1, 3),
-('Air Panas Mengeruda', 'Desa Mengeruda, Kabupaten Soa, Kabupaten Ngada', 'Air Panas Mengeruda adalah kolam rendam alami yang terbentuk dari aktivitas vulkanik. Airnya mengandung belerang yang dipercaya bermanfaat untuk kesehatan kulit. Dikelilingi oleh sawah hijau dan pemandangan gunung, tempat ini menawarkan pengalaman berendam yang menyegarkan dan terapeutik.', 11, 6, 4),
-('Kampung Adat Tololela', 'Desa Tololela, Kabupaten Golewa', 'Kampung Tololela merupakan salah satu kampung adat yang masih mempertahankan tradisi dan arsitektur asli suku Ngada. Rumah adat berbentuk kerucut dengan ornamen khas Ngada menjadi daya tarik utama bagi para wisatawan budaya.', 5, 3, 5),
-('Bukit Avatar', 'Kabupaten Bajawa, Kabupaten Ngada', 'Dijuluki Bukit Avatar karena keindahannya yang menyerupai pemandangan dalam film Avatar. Hamparan bukit hijau berlapis-lapis dengan kabut tipis di pagi hari menciptakan atmosfer magis yang memukau setiap pengunjung.', 2, 1, 6),
-('Air Panas Boba', 'Desa Soa, Kabupaten Soa', 'Sumber air panas alami Boba terletak di area yang masih asri dan belum banyak dikunjungi wisatawan. Air panasnya mengalir dari celah bebatuan vulkanik, menciptakan kolam-kolam alami yang sempurna untuk berendam.', 11, 6, 7),
-('Kampung Adat Belaraghi', 'Desa Belaraghi, Kabupaten Bajawa Utara', 'Kampung Belaraghi menyimpan kekayaan tradisi dan seni budaya Ngada yang autentik. Pengunjung dapat menyaksikan langsung ritual adat, tari-tarian tradisional, dan kerajinan tangan khas daerah.', 3, 1, 8),
-('Pantai Lekoena', 'Kabupaten Riung, Kabupaten Ngada', 'Pantai Lekoena menawarkan keindahan pasir putih dan air laut biru jernih yang memesona. Lokasinya yang tersembunyi membuat pantai ini masih terjaga kealamiannya, menjadikannya surga tersembunyi bagi para pelancong.', 9, 2, 9);
+INSERT INTO tempat_wisata (nama_tempat_wisata, alamat, informasi1, kategori, id_kabupaten, id_lokasi, id_galeri) VALUES
+('Kampung Adat Bena', 'Desa Bena, Kabupaten Golewa, Kabupaten Ngada', 'Kampung Adat Bena adalah salah satu kampung megalitik terpenting di Indonesia.', 'kampung_adat', 5, 3, 1),
+('Taman Wisata 17 Pulau Riung', 'Kabupaten Riung, Kabupaten Ngada', 'Taman Wisata Alam Riung terdiri dari 17 pulau kecil yang tersebar di Teluk Riung.', 'pulau_eksotis', 9, 2, 2),
+('Wolobobo', 'Desa Wolobobo, Kabupaten Bajawa', 'Wolobobo adalah sebuah bukit yang menawarkan pemandangan 360 derajat kota Bajawa.', 'wisata_alam', 2, 1, 3),
+('Air Panas Mengeruda', 'Desa Mengeruda, Kabupaten Soa, Kabupaten Ngada', 'Air Panas Mengeruda adalah kolam rendam alami yang terbentuk dari aktivitas vulkanik.', 'wisata_alam', 11, 6, 4),
+('Kampung Adat Tololela', 'Desa Tololela, Kabupaten Golewa', 'Kampung Tololela merupakan salah satu kampung adat yang masih mempertahankan tradisi asli suku Ngada.', 'kampung_adat', 5, 3, 5),
+('Bukit Avatar', 'Kabupaten Bajawa, Kabupaten Ngada', 'Dijuluki Bukit Avatar karena keindahannya yang menyerupai pemandangan dalam film Avatar.', 'wisata_alam', 2, 1, 6),
+('Air Panas Boba', 'Desa Soa, Kabupaten Soa', 'Sumber air panas alami Boba terletak di area yang masih asri dan belum banyak dikunjungi.', 'wisata_alam', 11, 6, 7),
+('Kampung Adat Belaraghi', 'Desa Belaraghi, Kabupaten Bajawa Utara', 'Kampung Belaraghi menyimpan kekayaan tradisi dan seni budaya Ngada yang autentik.', 'kampung_adat', 3, 1, 8),
+('Pantai Lekoena', 'Kabupaten Riung, Kabupaten Ngada', 'Pantai Lekoena menawarkan keindahan pasir putih dan air laut biru jernih yang memesona.', 'wisata_alam', 9, 2, 9);
 
--- Tabel pesan dari halaman kontak
-CREATE TABLE IF NOT EXISTS pesan (
-  id_pesan   INT          NOT NULL AUTO_INCREMENT,
-  nama       VARCHAR(255) NOT NULL,
-  email      VARCHAR(255) NOT NULL,
-  subjek     VARCHAR(255)          DEFAULT NULL,
-  pesan      TEXT         NOT NULL,
-  sudah_baca TINYINT(1)   NOT NULL DEFAULT 0,
-  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id_pesan)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Migration: add kategori column to tempat_wisata
+-- ============================================================
+-- Migration: add fasilitas columns to tempat_wisata
+-- Run this if your DB already exists (skip if fresh install)
+-- ============================================================
 ALTER TABLE tempat_wisata
-  ADD COLUMN IF NOT EXISTS kategori VARCHAR(50) NOT NULL DEFAULT 'wisata_alam'
-  AFTER informasi1;
-
--- Migration: rename kecamatan table and columns to kabupaten
-RENAME TABLE kecamatan TO kabupaten;
-ALTER TABLE kabupaten CHANGE id_kecamatan id_kabupaten INT NOT NULL AUTO_INCREMENT;
-ALTER TABLE kabupaten CHANGE nama_kecamatan nama_kabupaten VARCHAR(150) NOT NULL;
-ALTER TABLE tempat_wisata CHANGE id_kecamatan id_kabupaten INT NULL;
-ALTER TABLE tempat_wisata DROP FOREIGN KEY tempat_wisata_ibfk_1;
-ALTER TABLE tempat_wisata ADD CONSTRAINT tempat_wisata_kabupaten_fk FOREIGN KEY (id_kabupaten) REFERENCES kabupaten(id_kabupaten) ON DELETE SET NULL;
+  ADD COLUMN IF NOT EXISTS akses_jalan VARCHAR(100) NULL AFTER kategori,
+  ADD COLUMN IF NOT EXISTS parkir      VARCHAR(100) NULL AFTER akses_jalan,
+  ADD COLUMN IF NOT EXISTS toilet      VARCHAR(100) NULL AFTER parkir,
+  ADD COLUMN IF NOT EXISTS jarak_atm   VARCHAR(100) NULL AFTER toilet,
+  ADD COLUMN IF NOT EXISTS jarak_rs    VARCHAR(150) NULL AFTER jarak_atm,
+  ADD COLUMN IF NOT EXISTS spot_foto   VARCHAR(100) NULL AFTER jarak_rs;

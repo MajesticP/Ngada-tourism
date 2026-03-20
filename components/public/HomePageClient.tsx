@@ -1,57 +1,20 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRef } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, ChevronDown, ArrowRight, Users, Camera, Mountain, Waves } from 'lucide-react'
+import { MapPin, ArrowRight, ArrowUpRight, MountainSnow, Waves, Users, Globe } from 'lucide-react'
 import Navbar from '@/components/public/Navbar'
 import Footer from '@/components/public/Footer'
+import PhotoMosaic from '@/components/public/home/PhotoMosaic'
+import FlipCard from '@/components/public/home/FlipCard'
+import { Num, Num3D } from '@/components/public/home/StatCounter'
+import { WisataItem, KAT_LABEL, getImg } from '@/components/public/home/types'
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] },
-  }),
-}
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.12 } },
-}
-
-type WisataItem = {
-  id_tempat_wisata: number
-  nama_tempat_wisata: string
-  alamat: string
-  informasi1: string
-  kategori: string
-  kabupaten: { nama_kabupaten: string } | null
-  galeri: { gambar: string | null; nama_galeri: string } | null
-}
-
-const KATEGORI_MAP: Record<string, { label: string; color: string }> = {
-  wisata_alam:    { label: 'Wisata Alam',   color: 'bg-forest-600' },
-  wisata_budaya:  { label: 'Wisata Budaya', color: 'bg-ngada-500' },
-  kampung_adat:   { label: 'Kampung Adat',  color: 'bg-terra-500' },
-  wisata_bahari:  { label: 'Wisata Bahari', color: 'bg-blue-500' },
-  pulau_eksotis:  { label: 'Pulau Eksotis', color: 'bg-cyan-600' },
-  penginapan:     { label: 'Penginapan',    color: 'bg-purple-600' },
-  kuliner:        { label: 'Kuliner',        color: 'bg-orange-500' },
-  religi:         { label: 'Wisata Religi', color: 'bg-yellow-600' },
-}
-
-const IMAGE_FALLBACKS = [
-  'https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80',
-  'https://images.unsplash.com/photo-1559494007-9f5847c49d94?w=800&q=80',
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-  'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&q=80',
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
-  'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&q=80',
-]
-
-export default function HomePageClient({ wisataData, kabupatenList, totalWisata, totalKampung, totalPulau }: {
+export default function HomePageClient({
+  wisataData, kabupatenList, totalWisata, totalKampung, totalPulau,
+}: {
   wisataData: WisataItem[]
   kabupatenList: { id_kabupaten: number; nama_kabupaten: string }[]
   totalWisata: number
@@ -59,337 +22,245 @@ export default function HomePageClient({ wisataData, kabupatenList, totalWisata,
   totalPulau: number
 }) {
   const heroRef = useRef<HTMLDivElement>(null)
-  const [scrollY, setScrollY] = useState(0)
 
-  useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  // Parallax: image moves UP at 40% of scroll speed (no gap — image oversized via scale-150)
-  const imgParallax = `translateY(${scrollY * 0.4}px)`
-  // Scroll-out: dark overlay fades in after 50% of viewport scrolled, done at 90%
-  const heroH = typeof window !== 'undefined' ? window.innerHeight : 800
-  const progress = Math.min(scrollY / heroH, 1)
-  const scrollOutOpacity = Math.min(Math.max((progress - 0.5) / 0.4, 0), 1)
-  const [visibleWisata, setVisibleWisata] = useState(wisataData)
-
-  const stats = [
-    { label: 'Tempat Wisata', value: `${totalWisata}+`, icon: <Camera size={22} /> },
-    { label: 'Kabupaten', value: `${kabupatenList.length}`, icon: <MapPin size={22} /> },
-    { label: 'Kampung Adat', value: `${totalKampung}`, icon: <Users size={22} /> },
-    { label: 'Pulau Eksotis', value: `${totalPulau}`, icon: <Waves size={22} /> },
-  ]
-
-  // show all wisata
-  useEffect(() => {
-    setVisibleWisata(wisataData)
-  }, [wisataData])
+  const cubeImages = wisataData.slice(0, 6).map((w, i) => getImg(w, i))
+  const [featured, ...rest] = wisataData
 
   return (
-    <main className="min-h-screen overflow-x-hidden">
-      <Navbar />
+    <>
+      <main className="bg-[#fafaf8] text-stone-900 overflow-x-hidden" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+        {/* grain overlay */}
+        <div className="pointer-events-none fixed inset-0 z-50 opacity-[0.025]"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize: '128px' }} />
 
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-forest-950">
+        <Navbar />
 
-        {/* Background image — scale-150 so there's room to move up without gap */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{ transform: imgParallax, willChange: 'transform' }}
-        >
-          <Image
-            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90"
-            alt="Sky"
-            fill
-            priority
-            className="object-cover object-center scale-150"
-          />
-        </div>
-
-        {/* Static dark gradient overlay */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-forest-950/40 via-transparent to-forest-950/90" />
-
-        {/* Static fog strip at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-64 z-20 bg-gradient-to-t from-forest-950 via-forest-950/40 to-transparent" />
-
-        {/* Scroll-out overlay — fades in over everything */}
-        <div
-          className="absolute inset-0 z-40 bg-forest-950 pointer-events-none"
-          style={{ opacity: scrollOutOpacity }}
-        />
-
-        {/* Floating decorative elements */}
-        <div className="absolute inset-0 z-20 pointer-events-none">
-          <motion.div
-            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute top-1/4 left-[8%] w-16 h-16 rounded-full bg-ngada-400/20 backdrop-blur-sm border border-ngada-300/30"
-          />
-          <motion.div
-            animate={{ y: [0, 20, 0], rotate: [0, -8, 0] }}
-            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            className="absolute top-1/3 right-[10%] w-24 h-24 rounded-full bg-forest-400/15 backdrop-blur-sm border border-forest-300/20"
-          />
-          <motion.div
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-            className="absolute bottom-1/3 left-[15%] w-10 h-10 rounded-full bg-terra-400/20 backdrop-blur-sm border border-terra-300/30"
-          />
-        </div>
-
-        {/* Hero content */}
-        <div
-          className="relative z-30 text-center text-white px-6 max-w-5xl mx-auto"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 text-sm mb-6"
-          >
-            <MapPin size={14} className="text-ngada-300" />
-            <span className="text-ngada-100">Kabupaten Ngada, Flores — NTT</span>
-          </motion.div>
-
-          <motion.h1
-            className="font-display text-5xl md:text-7xl lg:text-8xl leading-[1.05] mb-6"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-          >
-            Jelajahi
-            <span className="block text-ngada-300 italic">Pesona Ngada</span>
-          </motion.h1>
-
-          <motion.p
-            className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.25 }}
-          >
-            Kampung adat megalitik, gunung berapi aktif, pulau-pulau eksotis, dan
-            budaya yang hidup — semuanya menunggu Anda di jantung Flores.
-          </motion.p>
-
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <Link href="/wisata" className="btn-primary text-base px-8 py-4">
-              Mulai Jelajahi →
-            </Link>
-            <a
-              href="#wisata"
-              className="inline-flex items-center gap-2 border-2 border-white/40 text-white hover:bg-white/10 px-8 py-4 rounded-full transition-all duration-300 backdrop-blur-sm font-medium"
-            >
-              Lihat Destinasi
-            </a>
-          </motion.div>
-        </div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 text-white/60 flex flex-col items-center gap-2"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <span className="text-xs tracking-widest uppercase">Scroll</span>
-          <ChevronDown size={18} />
-        </motion.div>
-      </section>
-
-      {/* ── STATS STRIP ───────────────────────────────────────────────────── */}
-      <section className="bg-forest-800 py-10">
-        <div className="max-w-5xl mx-auto px-6">
-          <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-          >
-            {stats.map((stat, i) => (
-              <motion.div key={stat.label} variants={fadeUp} custom={i} className="text-center text-white">
-                <div className="flex justify-center mb-3 text-ngada-300">{stat.icon}</div>
-                <div className="text-3xl font-display font-bold text-ngada-200">{stat.value}</div>
-                <div className="text-sm text-white/60 mt-1">{stat.label}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── FEATURED WISATA ───────────────────────────────────────────────── */}
-      <section id="wisata" className="py-24 px-6 bg-ngada-50">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            className="text-center mb-14"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-80px' }}
-          >
-            <motion.p variants={fadeUp} className="text-ngada-500 font-medium tracking-widest uppercase text-sm mb-3">
-              Destinasi Unggulan
-            </motion.p>
-            <motion.h2 variants={fadeUp} className="section-title mb-4">
-              Tempat Wisata Terbaik
-            </motion.h2>
-            <motion.p variants={fadeUp} className="text-forest-600 max-w-xl mx-auto text-lg">
-              Dari kampung adat bersejarah hingga laut yang tak terjamah — setiap sudut Ngada menyimpan keajaiban.
-            </motion.p>
-          </motion.div>
-
-          {wisataData.length === 0 ? (
-            <div className="text-center py-12 text-forest-400">
-              <p className="font-display text-2xl mb-2">Belum ada data wisata</p>
-              <p className="text-sm">Tambahkan destinasi melalui halaman admin</p>
-            </div>
-          ) : (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key="all"
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {visibleWisata.map((w, i) => {
-                  const imgSrc = w.galeri?.gambar
-                    ? w.galeri.gambar.startsWith("http") ? w.galeri.gambar : `/uploads/${w.galeri.gambar}`
-                    : IMAGE_FALLBACKS[i % IMAGE_FALLBACKS.length]
-                  const kat = KATEGORI_MAP[(w as any).kategori] ?? KATEGORI_MAP.wisata_alam
-
-                  return (
-                    <motion.div
-                      key={w.id_tempat_wisata}
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08, duration: 0.5 }}
-                    >
-                      <Link href={`/wisata/${w.id_tempat_wisata}`} className="card-wisata block group">
-                        <div className="relative h-56 overflow-hidden">
-                          <Image
-                            src={imgSrc}
-                            alt={w.nama_tempat_wisata}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-700"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
-                          <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
-                            <span className={`badge text-white ${kat.color}`}>
-                              {kat.label}
-                            </span>
-                            {w.kabupaten && (
-                              <span className="badge text-white bg-black/40 backdrop-blur-sm">
-                                <MapPin size={10} />
-                                {w.kabupaten.nama_kabupaten}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="p-5">
-                          <h3 className="font-display text-xl text-forest-900 mb-2 group-hover:text-ngada-600 transition-colors">
-                            {w.nama_tempat_wisata}
-                          </h3>
-                          <p className="text-forest-600 text-sm leading-relaxed line-clamp-2">{w.informasi1}</p>
-                          <div className="mt-4 flex items-center gap-1 text-ngada-500 text-sm font-medium">
-                            Lihat Detail <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                          </div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  )
-                })}
-              </motion.div>
-            </AnimatePresence>
-          )}
-
-          <div className="text-center mt-12">
-            <Link href="/wisata" className="btn-outline inline-flex items-center gap-2">
-              Lihat Semua Wisata <ArrowRight size={16} />
-            </Link>
+        {/* ── HERO ──────────────────────────────────────────────── */}
+        <section ref={heroRef} className="relative min-h-screen flex flex-col overflow-hidden bg-stone-950">
+          <div className="absolute inset-0 z-0 scale-110">
+            <Image src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90" alt="Ngada" fill priority className="object-cover opacity-30" />
+            <div className="absolute inset-0 bg-gradient-to-b from-stone-950/60 via-stone-950/40 to-stone-950" />
           </div>
-        </div>
-      </section>
 
-      {/* ── ABOUT BANNER ──────────────────────────────────────────────────── */}
-      <section id="tentang" className="relative py-32 px-6">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=1600&q=80)',
-            backgroundAttachment: 'fixed',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-        <div className="absolute inset-0 bg-forest-950/75" />
-        <div className="relative z-10 max-w-3xl mx-auto text-center text-white">
-          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <motion.p variants={fadeUp} className="text-ngada-300 uppercase tracking-widest text-sm mb-4">
-              Tentang Ngada
-            </motion.p>
-            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-5xl mb-6 leading-tight">
-              Warisan Budaya yang{' '}
-              <em className="text-ngada-300">Tak Ternilai</em>
-            </motion.h2>
-            <motion.p variants={fadeUp} className="text-white/75 text-lg leading-relaxed mb-8">
-              Kabupaten Ngada menyimpan warisan budaya megalitik yang masih hidup dan lestari.
-              Kampung-kampung adat dengan rumah tradisional khas, ritual adat yang masih
-              dijalankan, serta keindahan alam gunung berapi dan laut yang tak tertandingi
-              menjadikan Ngada sebagai destinasi wisata autentik yang patut dikunjungi.
-            </motion.p>
-            <motion.div variants={fadeUp}>
-              <Link href="/wisata" className="btn-primary">
-                Mulai Perjalanan Anda
-              </Link>
+          <div className="absolute inset-x-0 bottom-0 h-72 z-0 overflow-hidden" style={{ perspective: 600 }}>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 1.5 }}
+              style={{ width: '200%', height: '100%', transform: 'rotateX(65deg) translateX(-25%) translateY(40%)', backgroundImage: 'linear-gradient(rgba(220,145,31,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(220,145,31,0.08) 1px, transparent 1px)', backgroundSize: '60px 60px' }}
+            />
+          </div>
+
+          <div className="relative z-10 flex flex-col justify-between min-h-screen px-8 md:px-16 pt-36 pb-14">
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="flex items-center gap-3 text-white/40 text-xs uppercase tracking-[0.3em]">
+              <span className="w-1.5 h-1.5 rounded-full bg-ngada-400 animate-pulse" />
+              Ngada · Flores · NTT · Indonesia
             </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* ── KECAMATAN STRIP ───────────────────────────────────────────────── */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            className="mb-10 text-center"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <motion.h2 variants={fadeUp} className="section-title mb-3">Jelajahi per Kabupaten</motion.h2>
-            <motion.p variants={fadeUp} className="text-forest-600">{kabupatenList.length} kabupaten, masing-masing dengan keunikannya sendiri</motion.p>
-          </motion.div>
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-16 my-auto py-20">
+              <div className="flex-1 max-w-2xl">
+                <div className="overflow-hidden pb-3 mb-1">
+                  <motion.h1 initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="font-display font-black text-[clamp(3.2rem,7vw,6.5rem)] leading-[0.92] text-white">Jelajahi</motion.h1>
+                </div>
+                <div className="overflow-hidden pb-4 mb-8">
+                  <motion.h1 initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="font-display font-black text-[clamp(3.2rem,7vw,6.5rem)] leading-[0.92] text-ngada-400 italic">Pesona Ngada</motion.h1>
+                </div>
+                <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
+                  className="text-white/50 text-sm max-w-sm leading-relaxed mb-8">
+                  Kampung adat megalitik, gunung berapi aktif, dan pulau-pulau eksotis di jantung Flores.
+                </motion.p>
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="flex flex-wrap gap-3">
+                  <Link href="/wisata" data-hover className="inline-flex items-center gap-2 bg-ngada-500 hover:bg-ngada-400 text-white px-7 py-3.5 rounded-2xl font-bold text-sm transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-ngada-500/30">
+                    Mulai Jelajahi <ArrowRight size={14} />
+                  </Link>
+                  <a href="#destinasi" data-hover className="inline-flex items-center gap-2 border border-white/15 text-white/70 hover:text-white px-7 py-3.5 rounded-2xl font-semibold text-sm transition-all hover:bg-white/5">
+                    Lihat Destinasi
+                  </a>
+                </motion.div>
+              </div>
 
-          <div className="flex flex-wrap gap-3 justify-center">
-            {kabupatenList.map((kec, i) => (
-              <motion.div
-                key={kec.id_kabupaten}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <Link
-                  href={`/wisata?kabupaten=${encodeURIComponent(kec.nama_kabupaten)}`}
-                  className="px-5 py-2.5 rounded-full border-2 border-forest-200 text-forest-700 hover:border-forest-600 hover:bg-forest-600 hover:text-white transition-all duration-300 text-sm font-medium block"
-                >
-                  {kec.nama_kabupaten}
-                </Link>
+              <motion.div initial={{ opacity: 0, scale: 0.85, x: 40 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ delay: 0.6, duration: 1, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col items-center gap-4">
+                <PhotoMosaic images={cubeImages} />
+              </motion.div>
+            </div>
+
+            <motion.div animate={{ y: [0, 7, 0] }} transition={{ duration: 2.5, repeat: Infinity }} className="flex flex-col items-center gap-2 text-white/20 text-[10px] uppercase tracking-[0.3em] w-fit mx-auto">
+              Scroll
+              <div className="w-px h-10 bg-gradient-to-b from-white/20 to-transparent" />
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── STATS ────────────────────────────────────────────── */}
+        <section className="py-24 px-8 md:px-16 border-b border-stone-200">
+          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x divide-stone-200">
+            {[
+              { icon: MountainSnow, val: totalWisata,         suf: '+', label: 'Destinasi Wisata' },
+              { icon: Globe,        val: kabupatenList.length, suf: '',  label: 'Kecamatan' },
+              { icon: Users,        val: totalKampung,         suf: '',  label: 'Kampung Adat' },
+              { icon: Waves,        val: totalPulau,           suf: '',  label: 'Pulau Eksotis' },
+            ].map(({ icon: Icon, val, suf, label }, i) => (
+              <motion.div key={label} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                className="px-0 md:px-10 first:pl-0 last:pr-0 group" data-hover>
+                <Icon size={16} className="text-stone-400 mb-4 group-hover:text-ngada-500 transition-colors" />
+                <p className="font-display font-black text-5xl text-stone-900 leading-none mb-2"><Num to={val} suf={suf} /></p>
+                <p className="text-stone-400 text-xs uppercase tracking-[0.15em]">{label}</p>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <Footer />
-    </main>
+        {/* ── DESTINATIONS ─────────────────────────────────────── */}
+        <section id="destinasi" className="py-24 px-8 md:px-16">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-end justify-between mb-14">
+              <div className="flex items-end gap-6">
+                <Num3D n="01" />
+                <div className="mb-4">
+                  <div className="overflow-hidden">
+                    <motion.p initial={{ y: '100%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="text-[10px] uppercase tracking-[0.25em] text-stone-400 mb-1">Destinasi Unggulan</motion.p>
+                  </div>
+                  <div className="overflow-hidden">
+                    <motion.h2 initial={{ y: '100%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.05, ease: [0.16, 1, 0.3, 1] }} className="font-display font-black text-4xl text-stone-900 leading-none">Tempat Wisata Terbaik</motion.h2>
+                  </div>
+                </div>
+              </div>
+              <Link href="/wisata" data-hover className="hidden md:inline-flex items-center gap-2 border border-stone-300 text-stone-600 hover:border-stone-900 hover:text-stone-900 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
+                Semua <ArrowUpRight size={13} />
+              </Link>
+            </div>
+
+            {wisataData.length === 0 ? (
+              <p className="text-stone-400 text-center py-20">Belum ada data wisata.</p>
+            ) : (
+              <>
+                {featured && (
+                  <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="mb-5">
+                    <Link href={`/wisata/${featured.id_tempat_wisata}`} data-hover className="group relative block h-[400px] md:h-[500px] rounded-3xl overflow-hidden">
+                      <Image src={getImg(featured, 0)} alt={featured.nama_tempat_wisata} fill className="object-cover group-hover:scale-[1.02] transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-stone-950/80 via-stone-950/30 to-transparent" />
+                      <div className="absolute inset-0 p-10 md:p-14 flex flex-col justify-end">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-ngada-400 mb-3 block">{KAT_LABEL[featured.kategori] ?? 'Wisata'} · {featured.kabupaten?.nama_kabupaten}</span>
+                        <h3 className="font-display text-4xl md:text-5xl text-white font-black leading-none mb-3">{featured.nama_tempat_wisata}</h3>
+                        <p className="text-white/50 text-sm max-w-md line-clamp-2 mb-5">{featured.informasi1}</p>
+                        <span className="inline-flex items-center gap-2 bg-white text-stone-900 px-5 py-2.5 rounded-full text-sm font-bold w-fit group-hover:bg-ngada-400 group-hover:text-white transition-colors">Lihat Detail <ArrowRight size={13} /></span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {rest.slice(0, 4).map((w, i) => (
+                    <motion.div key={w.id_tempat_wisata} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.7 }}>
+                      <FlipCard w={w} idx={i + 1} />
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* ── ABOUT ────────────────────────────────────────────── */}
+        <section className="bg-stone-950 py-28 px-8 md:px-16 overflow-hidden">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <motion.div initial={{ opacity: 0, rotateY: 15, x: -40 }} whileInView={{ opacity: 1, rotateY: 0, x: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} style={{ perspective: 1000 }} className="relative">
+              <div className="relative h-[480px] rounded-3xl overflow-hidden" style={{ transformStyle: 'preserve-3d' }}>
+                <Image src="https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=900&q=85" alt="Ngada" fill className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/60 to-transparent" />
+              </div>
+              <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} className="absolute -bottom-8 -right-8 bg-ngada-500 text-white rounded-2xl p-6 shadow-2xl shadow-ngada-500/40" style={{ boxShadow: '0 20px 60px rgba(220,145,31,0.35)' }}>
+                <p className="font-display text-4xl font-black">{totalWisata}+</p>
+                <p className="text-white/70 text-xs mt-1 uppercase tracking-wider">Destinasi</p>
+              </motion.div>
+              <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }} className="absolute top-8 -left-6 bg-[#fafaf8] rounded-2xl px-5 py-3 shadow-xl">
+                <p className="text-stone-900 text-xs font-bold uppercase tracking-widest">Flores · NTT</p>
+              </motion.div>
+            </motion.div>
+
+            <div>
+              <div className="flex items-end gap-5 mb-8"><Num3D n="02" /><span className="text-[10px] uppercase tracking-[0.25em] text-white/30 mb-5">Tentang</span></div>
+              <div className="overflow-hidden pb-2 mb-1">
+                <motion.h2 initial={{ y: '100%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }} className="font-display font-black text-[clamp(2.5rem,5vw,4rem)] text-white leading-none">Warisan Budaya</motion.h2>
+              </div>
+              <div className="overflow-hidden pb-3 mb-8">
+                <motion.h2 initial={{ y: '100%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }} className="font-display font-black text-[clamp(2.5rem,5vw,4rem)] text-ngada-400 leading-none italic">Tak Ternilai.</motion.h2>
+              </div>
+              <motion.p initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }} className="text-white/45 leading-relaxed mb-10 text-[15px]">
+                Kampung-kampung adat dengan rumah tradisional khas, ritual adat yang masih dijalankan, serta keindahan alam gunung berapi dan laut tak tertandingi menjadikan Ngada destinasi autentik yang patut dikunjungi.
+              </motion.p>
+              <div className="flex gap-10 mb-10 pb-10 border-b border-white/10">
+                {[['11', 'Kecamatan'], ['9+', 'Wisata Unggulan'], ['100+', 'Tahun Tradisi']].map(([v, l]) => (
+                  <div key={l}><p className="font-display text-3xl font-black text-ngada-400">{v}</p><p className="text-white/30 text-xs mt-0.5">{l}</p></div>
+                ))}
+              </div>
+              <Link href="/wisata" data-hover className="group inline-flex items-center gap-3 bg-white hover:bg-ngada-400 text-stone-900 hover:text-white px-7 py-4 rounded-2xl font-bold text-sm w-fit transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
+                Jelajahi Semua Destinasi <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── KECAMATAN ─────────────────────────────────────────── */}
+        <section className="py-24 px-8 md:px-16 border-b border-stone-200">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-end gap-6 mb-12">
+              <Num3D n="03" />
+              <div className="mb-4">
+                <div className="overflow-hidden">
+                  <motion.h2 initial={{ y: '100%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="font-display font-black text-4xl text-stone-900 leading-none">Jelajahi per Kecamatan</motion.h2>
+                </div>
+              </div>
+            </div>
+            <motion.div className="flex flex-wrap gap-3" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ visible: { transition: { staggerChildren: 0.04 } } }}>
+              {kabupatenList.map(kab => (
+                <motion.div key={kab.id_kabupaten} variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>
+                  <Link href={`/wisata?kabupaten=${encodeURIComponent(kab.nama_kabupaten)}`} data-hover className="group inline-flex items-center gap-2 px-5 py-3 rounded-full border border-stone-300 text-stone-600 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all duration-300 text-sm font-medium hover:-translate-y-0.5 hover:shadow-lg">
+                    <MapPin size={11} className="text-stone-400 group-hover:text-ngada-400 transition-colors" />
+                    {kab.nama_kabupaten}
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── CTA ───────────────────────────────────────────────── */}
+        <section className="py-24 px-8 md:px-16 bg-[#fafaf8]">
+          <motion.div initial={{ opacity: 0, rotateX: 8, y: 40 }} whileInView={{ opacity: 1, rotateX: 0, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} style={{ perspective: 1200 }} className="max-w-7xl mx-auto">
+            <div className="bg-stone-950 rounded-3xl overflow-hidden relative" style={{ boxShadow: '0 40px 120px rgba(0,0,0,0.18)' }}>
+              <div className="absolute inset-0 overflow-hidden" style={{ perspective: 500 }}>
+                <motion.div animate={{ rotateX: [0, 2, 0], rotateY: [0, 1, 0] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} style={{ position: 'absolute', inset: '-20%', backgroundImage: 'linear-gradient(rgba(220,145,31,0.06) 1px, transparent 1px),linear-gradient(90deg,rgba(220,145,31,0.06) 1px,transparent 1px)', backgroundSize: '50px 50px', transform: 'rotateX(55deg) translateY(30%)' }} />
+              </div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-ngada-400/60 to-transparent" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-32 bg-ngada-400/10 blur-3xl" />
+              <div className="relative z-10 p-14 md:p-20 flex flex-col md:flex-row items-start md:items-end justify-between gap-12">
+                <div>
+                  <div className="overflow-hidden pb-2 mb-1">
+                    <motion.h2 initial={{ y: '100%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }} className="font-display font-black text-[clamp(2.8rem,6vw,5.5rem)] text-white leading-none">Siap Berpetualang?</motion.h2>
+                  </div>
+                  <div className="overflow-hidden">
+                    <motion.h2 initial={{ y: '100%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }} className="font-display font-black text-[clamp(2.8rem,6vw,5.5rem)] text-ngada-400 leading-none italic">Flores Menunggu.</motion.h2>
+                  </div>
+                  <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }} className="text-white/35 mt-5 text-sm max-w-md leading-relaxed">
+                    Dari puncak gunung berapi hingga kedalaman laut Riung — petualangan Anda di Ngada dimulai di sini.
+                  </motion.p>
+                </div>
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex flex-col gap-3 flex-shrink-0">
+                  <Link href="/wisata" data-hover className="group inline-flex items-center justify-center gap-2 bg-white text-stone-900 hover:bg-ngada-400 hover:text-white px-10 py-5 rounded-2xl font-black text-base transition-all hover:-translate-y-1 hover:shadow-2xl">
+                    Lihat Destinasi <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <Link href="/lokasi" data-hover className="inline-flex items-center justify-center gap-2 border border-white/10 text-white/60 hover:text-white px-10 py-4 rounded-2xl font-semibold text-sm transition-all hover:bg-white/5">
+                    <MapPin size={14} /> Peta Lokasi
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+
+        <Footer />
+      </main>
+    </>
   )
 }

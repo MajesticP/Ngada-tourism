@@ -12,8 +12,8 @@ export default async function HomePage() {
     }),
     db.kabupaten.findMany({ orderBy: { nama_kabupaten: 'asc' } }),
     db.tempatWisata.count(),
-    db.tempatWisata.count({ where: { kategori: 'kampung_adat' } as any }),
-    db.tempatWisata.count({ where: { kategori: 'pulau_eksotis' } as any }),
+    db.tempatWisata.count({ where: { kategori: 'kampung_adat' } }),
+    db.tempatWisata.count({ where: { kategori: 'pulau_eksotis' } }),
   ])
 
   return (
