@@ -8,6 +8,7 @@ import Navbar from '@/components/public/Navbar'
 import Footer from '@/components/public/Footer'
 import PhotoCarousel from '@/components/public/PhotoCarousel'
 import { MapPin, ArrowLeft, Map, Car, ParkingCircle, Toilet, Landmark, Phone, Camera } from 'lucide-react'
+import FasilitasMap from '@/components/public/FasilitasMap'
 
 async function getWisata(id: string) {
   return db.tempatWisata.findUnique({
@@ -171,6 +172,15 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
                       </div>
                     )}
                   </div>
+
+                  {/* ── Peta Akses Fasilitas ── */}
+                  {hasMap && (
+                    <FasilitasMap
+                      wisataLat={wisata.lokasi!.lat!}
+                      wisataLng={wisata.lokasi!.lng!}
+                      wisataName={wisata.nama_tempat_wisata}
+                    />
+                  )}
                 </div>
               )}
             </div>
