@@ -20,6 +20,10 @@ export const wisataSchema = z.object({
   jarak_atm:          z.string().max(100).nullable().optional(),
   jarak_rs:           z.string().max(100).nullable().optional(),
   spot_foto:          z.string().max(100).nullable().optional(),
+  atm_lat:            z.number().min(-90).max(90).nullable().optional(),
+  atm_lng:            z.number().min(-180).max(180).nullable().optional(),
+  rs_lat:             z.number().min(-90).max(90).nullable().optional(),
+  rs_lng:             z.number().min(-180).max(180).nullable().optional(),
 })
 
 export type WisataInput = z.infer<typeof wisataSchema>

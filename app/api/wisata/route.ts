@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       galeri_nama, galeri_gambar, galeri_keterangan,
       lat, lng,
       akses_jalan, parkir, toilet, jarak_atm, jarak_rs, spot_foto,
+      atm_lat, atm_lng, rs_lat, rs_lng,
     } = parsed.data
 
     let id_galeri: number | null = null
@@ -66,6 +67,10 @@ export async function POST(req: NextRequest) {
         jarak_atm:   jarak_atm   ?? null,
         jarak_rs:    jarak_rs    ?? null,
         spot_foto:   spot_foto   ?? null,
+        atm_lat:     atm_lat     ?? null,
+        atm_lng:     atm_lng     ?? null,
+        rs_lat:      rs_lat      ?? null,
+        rs_lng:      rs_lng      ?? null,
       },
     })
 

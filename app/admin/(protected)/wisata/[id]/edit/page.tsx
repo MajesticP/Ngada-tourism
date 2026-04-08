@@ -44,6 +44,10 @@ export default async function EditWisataPage({ params }: { params: Promise<{ id:
           jarak_atm:           wisata.jarak_atm,
           jarak_rs:            wisata.jarak_rs,
           spot_foto:           wisata.spot_foto,
+          atm_lat:             wisata.atm_lat,
+          atm_lng:             wisata.atm_lng,
+          rs_lat:              wisata.rs_lat,
+          rs_lng:              wisata.rs_lng,
         }}
       >
         {/* Gallery section */}

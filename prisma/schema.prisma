@@ -59,6 +59,10 @@ model TempatWisata {
   toilet             String?
   jarak_atm          String?
   jarak_rs           String?
+  atm_lat            Float?
+  atm_lng            Float?
+  rs_lat             Float?
+  rs_lng             Float?
   spot_foto          String?
   id_kabupaten       Int?
   id_lokasi          Int?

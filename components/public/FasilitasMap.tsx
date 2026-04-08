@@ -6,67 +6,16 @@ interface FasilitasMapProps {
   wisataLat: number
   wisataLng: number
   wisataName: string
-}
-
-interface NearbyPlace {
-  lat: number
-  lng: number
-  name: string
-  type: 'atm' | 'rs'
-  tags?: Record<string, string>
+  atmLat: number | null
+  atmLng: number | null
+  atmName: string | null   // jarak_atm label e.g. "± 2–3 km"
+  rsLat: number | null
+  rsLng: number | null
+  rsName: string | null    // jarak_rs label e.g. "± 2 km (Puskesmas Bajawa)"
 }
 
 declare global {
   interface Window { L: any }
-}
-
-async function fetchNearbyFacilities(lat: number, lng: number): Promise<NearbyPlace[]> {
-  const radius = 15000 // 15km radius
-  const query = `
-    [out:json][timeout:15];
-    (
-      node["amenity"="atm"](around:${radius},${lat},${lng});
-      node["amenity"="bank"]["atm"="yes"](around:${radius},${lat},${lng});
-      node["amenity"="hospital"](around:${radius},${lat},${lng});
-      node["amenity"="clinic"](around:${radius},${lat},${lng});
-      node["amenity"="doctors"](around:${radius},${lat},${lng});
-      node["healthcare"="hospital"](around:${radius},${lat},${lng});
-    );
-    out body;
-  `.trim()
-
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    body: query,
-    headers: { 'Content-Type': 'text/plain' },
-  })
-  const data = await res.json()
-
-  const results: NearbyPlace[] = []
-  const atmCandidates: (NearbyPlace & { dist: number })[] = []
-  const rsCandidates: (NearbyPlace & { dist: number })[] = []
-
-  for (const el of data.elements ?? []) {
-    if (el.type !== 'node') continue
-    const amenity = el.tags?.amenity ?? ''
-    const healthcare = el.tags?.healthcare ?? ''
-    const dist = Math.sqrt((el.lat - lat) ** 2 + (el.lon - lng) ** 2)
-    const name = el.tags?.name ?? el.tags?.operator ?? null
-
-    if (amenity === 'atm' || el.tags?.atm === 'yes') {
-      atmCandidates.push({ lat: el.lat, lng: el.lon, name: name ?? 'ATM Terdekat', type: 'atm', tags: el.tags, dist })
-    } else if (['hospital', 'clinic', 'doctors'].includes(amenity) || healthcare === 'hospital') {
-      rsCandidates.push({ lat: el.lat, lng: el.lon, name: name ?? 'Fasilitas Kesehatan', type: 'rs', tags: el.tags, dist })
-    }
-  }
-
-  atmCandidates.sort((a, b) => a.dist - b.dist)
-  rsCandidates.sort((a, b) => a.dist - b.dist)
-
-  if (atmCandidates[0]) results.push(atmCandidates[0])
-  if (rsCandidates[0]) results.push(rsCandidates[0])
-
-  return results
 }
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
@@ -89,36 +38,31 @@ async function fetchRoute(
     if (!res.ok) throw new Error('OSRM error')
     const data = await res.json()
     const coords: [number, number][] = data.routes?.[0]?.geometry?.coordinates ?? []
-    // GeoJSON is [lng, lat], Leaflet needs [lat, lng]
     return coords.map(([lng, lat]) => [lat, lng])
   } catch {
-    // Fallback to straight line if routing fails
     return [[fromLat, fromLng], [toLat, toLng]]
   }
 }
 
-export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: FasilitasMapProps) {
+export default function FasilitasMap({
+  wisataLat, wisataLng, wisataName,
+  atmLat, atmLng, atmName,
+  rsLat, rsLng, rsName,
+}: FasilitasMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const loadedRef = useRef(false)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [facilities, setFacilities] = useState<NearbyPlace[]>([])
-  const [activeInfo, setActiveInfo] = useState<NearbyPlace | null>(null)
+  const [ready, setReady] = useState(false)
+
+  const hasAtm = atmLat != null && atmLng != null
+  const hasRs  = rsLat  != null && rsLng  != null
+
+  useEffect(() => { setReady(true) }, [])
 
   useEffect(() => {
-    fetchNearbyFacilities(wisataLat, wisataLng)
-      .then(f => {
-        setFacilities(f)
-        setStatus('ready')
-      })
-      .catch(() => setStatus('error'))
-  }, [wisataLat, wisataLng])
-
-  useEffect(() => {
-    if (status !== 'ready' || loadedRef.current || !mapRef.current) return
+    if (!ready || loadedRef.current || !mapRef.current) return
     loadedRef.current = true
 
-    // Leaflet CSS
     if (!document.querySelector('link[data-leaflet]')) {
       const link = document.createElement('link')
       link.rel = 'stylesheet'
@@ -130,10 +74,6 @@ export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: Fasil
     const initMap = () => {
       const L = window.L
       if (!mapRef.current || mapInstanceRef.current) return
-
-      // Fit bounds around all points
-      const allPoints: [number, number][] = [[wisataLat, wisataLng]]
-      facilities.forEach(f => allPoints.push([f.lat, f.lng]))
 
       const map = L.map(mapRef.current, {
         zoomControl: false,
@@ -149,122 +89,63 @@ export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: Fasil
         maxZoom: 19,
       }).addTo(map)
 
-      // ── Wisata marker (green) ──
+      // Wisata marker (green)
       const wisataIcon = L.divIcon({
         className: '',
-        html: `
-          <div style="position:relative;width:36px;height:36px;">
-            <div style="
-              width:36px;height:36px;
-              background:#21442b;
-              border:3px solid white;
-              border-radius:50% 50% 50% 0;
-              transform:rotate(-45deg);
-              box-shadow:0 4px 12px rgba(33,68,43,0.5);
-            "></div>
-            <div style="
-              position:absolute;top:50%;left:50%;
-              transform:translate(-50%,-54%);
-              font-size:14px;line-height:1;
-            ">🏔️</div>
-          </div>`,
-        iconSize: [36, 36],
-        iconAnchor: [18, 36],
-        popupAnchor: [0, -36],
+        html: `<div style="position:relative;width:36px;height:36px;">
+          <div style="width:36px;height:36px;background:#21442b;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 4px 12px rgba(33,68,43,0.5);"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);font-size:14px;line-height:1;">🏔️</div>
+        </div>`,
+        iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36],
       })
-
-      L.marker([wisataLat, wisataLng], { icon: wisataIcon, title: wisataName })
+      L.marker([wisataLat, wisataLng], { icon: wisataIcon })
         .addTo(map)
         .bindPopup(`<div style="font-size:12px;font-weight:700;color:#1b3924;min-width:120px">${wisataName}</div><div style="font-size:11px;color:#555;margin-top:2px">📍 Lokasi Wisata</div>`)
 
-      // ── Facility markers ──
-      const atmFacility = facilities.find(f => f.type === 'atm')
-      const rsFacility = facilities.find(f => f.type === 'rs')
+      const allPoints: [number, number][] = [[wisataLat, wisataLng]]
 
-      if (atmFacility) {
+      // ATM marker (blue)
+      if (hasAtm) {
+        allPoints.push([atmLat!, atmLng!])
         const atmIcon = L.divIcon({
           className: '',
-          html: `
-            <div style="position:relative;width:32px;height:32px;">
-              <div style="
-                width:32px;height:32px;
-                background:#1d4ed8;
-                border:3px solid white;
-                border-radius:50% 50% 50% 0;
-                transform:rotate(-45deg);
-                box-shadow:0 4px 12px rgba(29,78,216,0.4);
-              "></div>
-              <div style="
-                position:absolute;top:50%;left:50%;
-                transform:translate(-50%,-54%);
-                font-size:13px;line-height:1;
-              ">🏧</div>
-            </div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -32],
+          html: `<div style="position:relative;width:32px;height:32px;">
+            <div style="width:32px;height:32px;background:#1d4ed8;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 4px 12px rgba(29,78,216,0.4);"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);font-size:13px;line-height:1;">🏧</div>
+          </div>`,
+          iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32],
         })
-
-        const distKm = haversineKm(wisataLat, wisataLng, atmFacility.lat, atmFacility.lng)
-        L.marker([atmFacility.lat, atmFacility.lng], { icon: atmIcon, title: atmFacility.name })
+        const distKm = haversineKm(wisataLat, wisataLng, atmLat!, atmLng!)
+        L.marker([atmLat!, atmLng!], { icon: atmIcon })
           .addTo(map)
-          .bindPopup(`<div style="font-size:12px;font-weight:700;color:#1e3a8a;min-width:140px">${atmFacility.name}</div><div style="font-size:11px;color:#555;margin-top:2px">🏧 ATM · ±${distKm.toFixed(1)} km dari wisata</div>`)
-
-        // Road route wisata → ATM via OSRM
-        fetchRoute(wisataLat, wisataLng, atmFacility.lat, atmFacility.lng).then(routeCoords => {
-          L.polyline(routeCoords, {
-            color: '#3b82f6',
-            weight: 3,
-            opacity: 0.85,
-            dashArray: '8, 5',
-          }).addTo(map)
+          .bindPopup(`<div style="font-size:12px;font-weight:700;color:#1e3a8a;min-width:140px">ATM Terdekat</div><div style="font-size:11px;color:#555;margin-top:2px">🏧 ${atmName ?? ''} · ±${distKm.toFixed(1)} km dari wisata</div>`)
+        fetchRoute(wisataLat, wisataLng, atmLat!, atmLng!).then(coords => {
+          L.polyline(coords, { color: '#3b82f6', weight: 3, opacity: 0.85, dashArray: '8, 5' }).addTo(map)
         })
       }
 
-      if (rsFacility) {
+      // RS marker (red)
+      if (hasRs) {
+        allPoints.push([rsLat!, rsLng!])
         const rsIcon = L.divIcon({
           className: '',
-          html: `
-            <div style="position:relative;width:32px;height:32px;">
-              <div style="
-                width:32px;height:32px;
-                background:#dc2626;
-                border:3px solid white;
-                border-radius:50% 50% 50% 0;
-                transform:rotate(-45deg);
-                box-shadow:0 4px 12px rgba(220,38,38,0.4);
-              "></div>
-              <div style="
-                position:absolute;top:50%;left:50%;
-                transform:translate(-50%,-54%);
-                font-size:13px;line-height:1;
-              ">🏥</div>
-            </div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -32],
+          html: `<div style="position:relative;width:32px;height:32px;">
+            <div style="width:32px;height:32px;background:#dc2626;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 4px 12px rgba(220,38,38,0.4);"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);font-size:13px;line-height:1;">🏥</div>
+          </div>`,
+          iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32],
         })
-
-        const distKm = haversineKm(wisataLat, wisataLng, rsFacility.lat, rsFacility.lng)
-        L.marker([rsFacility.lat, rsFacility.lng], { icon: rsIcon, title: rsFacility.name })
+        const distKm = haversineKm(wisataLat, wisataLng, rsLat!, rsLng!)
+        L.marker([rsLat!, rsLng!], { icon: rsIcon })
           .addTo(map)
-          .bindPopup(`<div style="font-size:12px;font-weight:700;color:#991b1b;min-width:140px">${rsFacility.name}</div><div style="font-size:11px;color:#555;margin-top:2px">🏥 RS/Puskesmas · ±${distKm.toFixed(1)} km dari wisata</div>`)
-
-        // Road route wisata → RS via OSRM
-        fetchRoute(wisataLat, wisataLng, rsFacility.lat, rsFacility.lng).then(routeCoords => {
-          L.polyline(routeCoords, {
-            color: '#ef4444',
-            weight: 3,
-            opacity: 0.85,
-            dashArray: '8, 5',
-          }).addTo(map)
+          .bindPopup(`<div style="font-size:12px;font-weight:700;color:#991b1b;min-width:140px">RS / Puskesmas</div><div style="font-size:11px;color:#555;margin-top:2px">🏥 ${rsName ?? ''} · ±${distKm.toFixed(1)} km dari wisata</div>`)
+        fetchRoute(wisataLat, wisataLng, rsLat!, rsLng!).then(coords => {
+          L.polyline(coords, { color: '#ef4444', weight: 3, opacity: 0.85, dashArray: '8, 5' }).addTo(map)
         })
       }
 
-      // Fit map to all markers
       if (allPoints.length > 1) {
-        const bounds = L.latLngBounds(allPoints)
-        map.fitBounds(bounds, { padding: [40, 40] })
+        map.fitBounds(L.latLngBounds(allPoints), { padding: [40, 40] })
       } else {
         map.setView([wisataLat, wisataLng], 14)
       }
@@ -288,10 +169,7 @@ export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: Fasil
         loadedRef.current = false
       }
     }
-  }, [status, facilities])
-
-  const atmFacility = facilities.find(f => f.type === 'atm')
-  const rsFacility = facilities.find(f => f.type === 'rs')
+  }, [ready])
 
   return (
     <div className="mt-6 rounded-2xl overflow-hidden border border-ngada-100 shadow-sm">
@@ -301,25 +179,11 @@ export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: Fasil
           <span className="text-ngada-400 text-sm">🗺️</span>
           <span className="text-white text-sm font-semibold">Peta Akses Fasilitas</span>
         </div>
-        <span className="text-white/40 text-xs">Sumber: OpenStreetMap</span>
+        <span className="text-white/40 text-xs">OpenStreetMap</span>
       </div>
 
-      {/* Map container */}
-      <div className="relative bg-ngada-50" style={{ height: 280 }}>
-        {status === 'loading' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ngada-50 z-10">
-            <div className="w-6 h-6 border-2 border-forest-700 border-t-transparent rounded-full animate-spin" />
-            <span className="text-forest-600 text-xs">Mencari fasilitas terdekat...</span>
-          </div>
-        )}
-        {status === 'error' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ngada-50 z-10">
-            <span className="text-2xl">📡</span>
-            <span className="text-forest-600 text-xs text-center px-6">
-              Gagal memuat peta. Periksa koneksi internet.
-            </span>
-          </div>
-        )}
+      {/* Map */}
+      <div style={{ height: 280 }}>
         <div ref={mapRef} className="w-full h-full" />
       </div>
 
@@ -330,36 +194,22 @@ export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: Fasil
             <span className="text-sm">🏔️</span>
             <span className="font-semibold text-forest-900">{wisataName}</span>
           </div>
-          {atmFacility ? (
+          {hasAtm && (
             <div className="flex items-center gap-1.5">
-              <span className="w-4 h-0.5 bg-blue-500 inline-block" style={{ borderTop: '2px dashed #3b82f6' }} />
+              <span className="w-4 inline-block" style={{ borderTop: '2px dashed #3b82f6' }} />
               <span className="text-sm">🏧</span>
-              <span>{atmFacility.name}</span>
-              <span className="text-forest-400">
-                (±{haversineKm(wisataLat, wisataLng, atmFacility.lat, atmFacility.lng).toFixed(1)} km)
-              </span>
+              <span>ATM Terdekat</span>
+              {atmName && <span className="text-forest-400">({atmName})</span>}
             </div>
-          ) : status === 'ready' ? (
-            <div className="flex items-center gap-1.5 text-forest-400">
-              <span className="text-sm">🏧</span>
-              <span>ATM tidak ditemukan dalam radius 15 km</span>
-            </div>
-          ) : null}
-          {rsFacility ? (
+          )}
+          {hasRs && (
             <div className="flex items-center gap-1.5">
-              <span className="w-4 h-0.5 bg-red-500 inline-block" style={{ borderTop: '2px dashed #ef4444' }} />
+              <span className="w-4 inline-block" style={{ borderTop: '2px dashed #ef4444' }} />
               <span className="text-sm">🏥</span>
-              <span>{rsFacility.name}</span>
-              <span className="text-forest-400">
-                (±{haversineKm(wisataLat, wisataLng, rsFacility.lat, rsFacility.lng).toFixed(1)} km)
-              </span>
+              <span>RS / Puskesmas</span>
+              {rsName && <span className="text-forest-400">({rsName})</span>}
             </div>
-          ) : status === 'ready' ? (
-            <div className="flex items-center gap-1.5 text-forest-400">
-              <span className="text-sm">🏥</span>
-              <span>RS/Puskesmas tidak ditemukan dalam radius 15 km</span>
-            </div>
-          ) : null}
+          )}
         </div>
       </div>
     </div>

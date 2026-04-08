@@ -24,6 +24,7 @@ type FormData = {
   id_kabupaten: number | null; galeri_nama: string; galeri_gambar: string; galeri_keterangan: string
   lat: string; lng: string; akses_jalan: string; parkir: string; toilet: string
   jarak_atm: string; jarak_rs: string; spot_foto: string
+  atm_lat: string; atm_lng: string; rs_lat: string; rs_lng: string
 }
 
 type Props = {
@@ -33,6 +34,7 @@ type Props = {
     id_kabupaten?: number | null; galeri_nama?: string; galeri_gambar?: string; galeri_keterangan?: string
     lat?: number | null; lng?: number | null; akses_jalan?: string | null; parkir?: string | null
     toilet?: string | null; jarak_atm?: string | null; jarak_rs?: string | null; spot_foto?: string | null
+    atm_lat?: number | null; atm_lng?: number | null; rs_lat?: number | null; rs_lng?: number | null
   }
   children?: React.ReactNode
 }
@@ -64,6 +66,10 @@ export default function WisataForm({ kabupaten, defaultValues, children }: Props
     jarak_atm:          defaultValues?.jarak_atm ?? '',
     jarak_rs:           defaultValues?.jarak_rs ?? '',
     spot_foto:          defaultValues?.spot_foto ?? '',
+    atm_lat:            defaultValues?.atm_lat?.toString() ?? '',
+    atm_lng:            defaultValues?.atm_lng?.toString() ?? '',
+    rs_lat:             defaultValues?.rs_lat?.toString() ?? '',
+    rs_lng:             defaultValues?.rs_lng?.toString() ?? '',
   })
 
   const setField = (key: string, value: string | number | null) =>
@@ -119,6 +125,10 @@ export default function WisataForm({ kabupaten, defaultValues, children }: Props
         akses_jalan: form.akses_jalan || null, parkir:    form.parkir    || null,
         toilet:      form.toilet      || null, jarak_atm: form.jarak_atm || null,
         jarak_rs:    form.jarak_rs    || null, spot_foto: form.spot_foto  || null,
+        atm_lat: form.atm_lat !== '' ? parseFloat(form.atm_lat) : null,
+        atm_lng: form.atm_lng !== '' ? parseFloat(form.atm_lng) : null,
+        rs_lat:  form.rs_lat  !== '' ? parseFloat(form.rs_lat)  : null,
+        rs_lng:  form.rs_lng  !== '' ? parseFloat(form.rs_lng)  : null,
       }
       const res = await fetch(
         isEdit ? `/api/wisata/${defaultValues!.id}` : '/api/wisata',
@@ -172,6 +182,10 @@ export default function WisataForm({ kabupaten, defaultValues, children }: Props
         jarak_atm={form.jarak_atm}
         jarak_rs={form.jarak_rs}
         spot_foto={form.spot_foto}
+        atm_lat={form.atm_lat}
+        atm_lng={form.atm_lng}
+        rs_lat={form.rs_lat}
+        rs_lng={form.rs_lng}
         onChange={(key, val) => setField(key, val)}
       />
 

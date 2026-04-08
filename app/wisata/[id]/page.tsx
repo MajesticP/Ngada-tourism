@@ -174,11 +174,17 @@ export default async function WisataDetailPage({ params }: { params: Promise<{ i
                   </div>
 
                   {/* ── Peta Akses Fasilitas ── */}
-                  {hasMap && (
+                  {hasMap && (wisata.atm_lat || wisata.rs_lat) && (
                     <FasilitasMap
                       wisataLat={wisata.lokasi!.lat!}
                       wisataLng={wisata.lokasi!.lng!}
                       wisataName={wisata.nama_tempat_wisata}
+                      atmLat={wisata.atm_lat ?? null}
+                      atmLng={wisata.atm_lng ?? null}
+                      atmName={wisata.jarak_atm ?? null}
+                      rsLat={wisata.rs_lat ?? null}
+                      rsLng={wisata.rs_lng ?? null}
+                      rsName={wisata.jarak_rs ?? null}
                     />
                   )}
                 </div>
