@@ -79,6 +79,24 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
+async function fetchRoute(
+  fromLat: number, fromLng: number,
+  toLat: number, toLng: number
+): Promise<[number, number][]> {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('OSRM error')
+    const data = await res.json()
+    const coords: [number, number][] = data.routes?.[0]?.geometry?.coordinates ?? []
+    // GeoJSON is [lng, lat], Leaflet needs [lat, lng]
+    return coords.map(([lng, lat]) => [lat, lng])
+  } catch {
+    // Fallback to straight line if routing fails
+    return [[fromLat, fromLng], [toLat, toLng]]
+  }
+}
+
 export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: FasilitasMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
@@ -192,13 +210,15 @@ export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: Fasil
           .addTo(map)
           .bindPopup(`<div style="font-size:12px;font-weight:700;color:#1e3a8a;min-width:140px">${atmFacility.name}</div><div style="font-size:11px;color:#555;margin-top:2px">🏧 ATM · ±${distKm.toFixed(1)} km dari wisata</div>`)
 
-        // Dashed polyline wisata → ATM
-        L.polyline([[wisataLat, wisataLng], [atmFacility.lat, atmFacility.lng]], {
-          color: '#3b82f6',
-          weight: 2.5,
-          opacity: 0.8,
-          dashArray: '8, 6',
-        }).addTo(map)
+        // Road route wisata → ATM via OSRM
+        fetchRoute(wisataLat, wisataLng, atmFacility.lat, atmFacility.lng).then(routeCoords => {
+          L.polyline(routeCoords, {
+            color: '#3b82f6',
+            weight: 3,
+            opacity: 0.85,
+            dashArray: '8, 5',
+          }).addTo(map)
+        })
       }
 
       if (rsFacility) {
@@ -230,13 +250,15 @@ export default function FasilitasMap({ wisataLat, wisataLng, wisataName }: Fasil
           .addTo(map)
           .bindPopup(`<div style="font-size:12px;font-weight:700;color:#991b1b;min-width:140px">${rsFacility.name}</div><div style="font-size:11px;color:#555;margin-top:2px">🏥 RS/Puskesmas · ±${distKm.toFixed(1)} km dari wisata</div>`)
 
-        // Dashed polyline wisata → RS
-        L.polyline([[wisataLat, wisataLng], [rsFacility.lat, rsFacility.lng]], {
-          color: '#ef4444',
-          weight: 2.5,
-          opacity: 0.8,
-          dashArray: '8, 6',
-        }).addTo(map)
+        // Road route wisata → RS via OSRM
+        fetchRoute(wisataLat, wisataLng, rsFacility.lat, rsFacility.lng).then(routeCoords => {
+          L.polyline(routeCoords, {
+            color: '#ef4444',
+            weight: 3,
+            opacity: 0.85,
+            dashArray: '8, 5',
+          }).addTo(map)
+        })
       }
 
       // Fit map to all markers
